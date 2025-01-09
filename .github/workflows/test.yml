@@ -43,4 +43,4 @@ jobs:
       - name: Test installation
         run: |
           pip install -e .
-          python -c 'import langchain_ai_tools'
+          python -c 'import lightdash_ai_tools'
