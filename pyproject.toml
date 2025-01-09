@@ -7,7 +7,7 @@ exclude = ["tests", "dev", ".trunk", ".github", ".venv", "dist"]
 
 [project]
 name = "lightdash-ai-tools"
-version = "0.0.3"
+version = "0.0.4"
 authors = [{ name = "yu-iskw" }]
 readme = "README.md"
 license = { file = "LICENSE" }
