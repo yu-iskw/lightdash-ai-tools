@@ -26,16 +26,6 @@ setup-python:
 lint:
 	trunk check -a
 
-# Check the coding style for the shell scripts.
-.PHONY: lint-shell
-lint-shell:
-	shellcheck ./dev/*.sh
-
-# Check the coding style for the python files.
-.PHONY: lint-python
-lint-python:
-	bash ./dev/lint_python.sh
-
 # Format source codes
 .PHONY: format
 format:
@@ -44,26 +34,31 @@ format:
 # Run the unit tests.
 .PHONY: test
 test:
-	bash ./dev/test_python.sh
+	uv run bash ./dev/test_python.sh
 
 # Build the package
 .PHONY: build
 build:
-	bash -x ./dev/build.sh
+	uv run bash ./dev/build.sh
 
 # Clean the environment
 .PHONY: clean
 clean:
-	bash ./dev/clean.sh
+	uv run bash ./dev/clean.sh
 
 all: clean lint test build
 
 # Publish to pypi
 .PHONY: publish
 publish:
-	bash ./dev/publish.sh "pypi"
+	uv run bash ./dev/publish.sh "pypi"
 
 # Publish to testpypi
 .PHONY: test-publish
 test-publish:
-	bash ./dev/publish.sh "testpypi"
+	uv run bash ./dev/publish.sh "testpypi"
+
+
+download-lightdash-json-schema:
+	curl -o ./dev/resources/lightdash-dbt-2.0.json \
+		https://raw.githubusercontent.com/lightdash/lightdash/main/packages/common/src/schemas/json/lightdash-dbt-2.0.json
