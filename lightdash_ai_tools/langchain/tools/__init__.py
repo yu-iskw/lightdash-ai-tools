@@ -16,8 +16,8 @@ from typing import List
 
 from langchain_core.tools import BaseTool
 
-from langchain_lightdash.langchain.tools.get_project import GetProject
-from langchain_lightdash.lightdash.client import LightdashClient
+from lightdash_ai_tools.langchain.tools.get_project import GetProject
+from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
 def get_all_readable_tools(lightdash_client: LightdashClient) -> List[BaseTool]:

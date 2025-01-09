@@ -14,7 +14,7 @@
 
 import unittest
 
-from langchain_lightdash.lightdash.models.list_organization_projects_v1 import (
+from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
     ListOrganizationProjectsResponse,
     OrganizationProject,
 )

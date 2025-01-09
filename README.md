@@ -1,9 +1,10 @@
-# langchain-lightdash
+# lightdash-ai-tools
 
-LangChain tools for Lightdash API
+AI tools for Lightdash API
 
 ## Installation
 
 ```bash
-pip install langchain-lightdash
+# Install lightdash-ai-tools
+pip install lightdash-ai-tools
 ```

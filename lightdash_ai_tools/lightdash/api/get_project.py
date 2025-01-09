@@ -14,16 +14,15 @@
 
 
 
-from langchain_lightdash.lightdash.api.base import BaseLightdashApiCaller
-from langchain_lightdash.lightdash.client import RequestType
-from langchain_lightdash.lightdash.models.get_project_v1 import GetProjectResponse
+from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
+from lightdash_ai_tools.lightdash.client import RequestType
+from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResponse
 
 
 class GetProjectV1(BaseLightdashApiCaller[GetProjectResponse]):
     """Get a Lightdash Project"""
     request_type = RequestType.GET
     path = "/api/v1/projects/{project_uuid}"
-    response_model = GetProjectResponse
 
     def call(self, project_uuid: str) -> GetProjectResponse:
         """

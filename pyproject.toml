@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 exclude = ["tests", "dev", ".trunk", ".github", ".venv", "dist"]
 
 [project]
-name = "langchain-lightdash"
+name = "lightdash-ai-tools"
 version = "0.1.0"
 authors = [{ name = "yu-iskw" }]
 readme = "README.md"
@@ -28,10 +28,12 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Typing :: Typed",
 ]
-description = "A dbt artifacts parser in python"
-dependencies = ["langchain-core>=0.3", "pydantic>=2.9", "requests>=2.32"]
+description = "AI tools for Lightdash"
+dependencies = ["pydantic>=2.9", "requests>=2.32"]
 
 [project.optional-dependencies]
+langchain = ["langchain-core>=0.3"]
+
 dev = [
   "build>=1.2.2.post1",
   "langchain-openai>=0.2.14",

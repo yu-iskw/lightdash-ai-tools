@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       # trunk-ignore(checkov/CKV_GHA_7)
-      langchain_lightdash_version:
-        description: langchain-lightdash version
+      package_version:
+        description: package version
         required: true
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
       - name: Test publish
         env:
           UV_PUBLISH_TOKEN: "${{ secrets.TESTPYPI_API_TOKEN }}"
-          LANGCHAIN_LIGHTDASH_VERSION: "${{ inputs.langchain_lightdash_version }}"
+          PACKAGE_VERSION: "${{ inputs.package_version }}"
         run: |
           bash dev/publish.sh testpypi
 
@@ -54,11 +54,11 @@ jobs:
             --extra-index-url https://pypi.org/simple/ \
             --force-reinstall \
             --use-feature=fast-deps \
-            -U langchain-lightdash=="${LANGCHAIN_LIGHTDASH_VERSION}"
+            -U lightdash-ai-tools=="${PACKAGE_VERSION}"
       # It takes some time when the package gets available.
       - name: Sleep
         run: |
           sleep 30
       - name: Test package
         run: |
-          python -c 'import langchain_lightdash; print(langchain_lightdash.__version__)'
+          python -c 'import lightdash_ai_tools; print(lightdash_ai_tools.__version__)'
