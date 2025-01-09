@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from typing import List, Optional, Type
 
 from langchain_core.callbacks import (
     AsyncCallbackManagerForToolRun,
     CallbackManagerForToolRun,
 )
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.get_project_access_list_v1 import (
@@ -39,6 +40,7 @@ class GetProjectAccessList(BaseTool):
     description: str = "Get the list of users with access to a specific project"
     args_schema: Type[BaseModel] = GetProjectAccessListInput
     return_direct: bool = False
+    handle_tool_error: bool = True
 
     lightdash_client: LightdashClient
 
@@ -53,9 +55,16 @@ class GetProjectAccessList(BaseTool):
         Returns:
             List of project access members as JSON strings
         """
-        api_call = GetProjectAccessListV1(client=self.lightdash_client)
-        response = api_call.call(project_uuid)
-        return [member.model_dump_json() for member in response.results]
+        try:
+            api_call = GetProjectAccessListV1(client=self.lightdash_client)
+            response = api_call.call(project_uuid)
+            return [member.model_dump_json() for member in response.results]
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving project access list.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e
 
     async def _arun(
         self,
@@ -68,4 +77,13 @@ class GetProjectAccessList(BaseTool):
         Returns:
             List of project access members as JSON strings
         """
-        return self._run(project_uuid, run_manager=run_manager.get_sync())
+        try:
+            if run_manager is not None:
+                return self._run(project_uuid, run_manager=run_manager.get_sync())
+            return self._run(project_uuid)
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving project access list asynchronously with project_uuid: {project_uuid}.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e

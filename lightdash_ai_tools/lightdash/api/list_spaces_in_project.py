@@ -16,7 +16,7 @@ from typing import Any, Dict
 
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
-from lightdash_ai_tools.lightdash.models.list_spaces_in_project import (
+from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
     ListSpacesInProjectResponse,
 )
 

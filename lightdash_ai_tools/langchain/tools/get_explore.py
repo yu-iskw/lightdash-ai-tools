@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from typing import Optional, Type
 
 from langchain_core.callbacks import (
     AsyncCallbackManagerForToolRun,
     CallbackManagerForToolRun,
 )
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.get_explore_v1 import GetExploreV1
@@ -28,7 +29,7 @@ from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Respo
 
 class GetExploreInput(BaseModel):
     """Input for the GetExplore tool."""
-    project_uuid: str = Field(description="The UUID of the project.")
+    project_uuid: str = Field(description="The UUID of the project. This is not the project name.")
     explore_id: str = Field(description="The ID of the explore to retrieve.")
 
 class GetExplore(BaseTool):
@@ -38,12 +39,25 @@ class GetExplore(BaseTool):
     description: str = "Get a specific explore (table) in a project."
     args_schema: Type[BaseModel] = GetExploreInput
     return_direct: bool = False
+    handle_tool_error: bool = True  # Enable error handling
 
     lightdash_client: LightdashClient
 
-    def _run(self, project_uuid: str, explore_id: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> GetExploreV1Response:
-        response = GetExploreV1(client=self.lightdash_client).call(project_uuid, explore_id)
-        return response
+    def _run(
+      self,
+      project_uuid: str,
+      explore_id: str,
+      run_manager: Optional[CallbackManagerForToolRun] = None
+      ) -> GetExploreV1Response:
+        try:
+            response = GetExploreV1(client=self.lightdash_client).call(project_uuid, explore_id)
+            return response
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving explore with project_uuid: {project_uuid} and explore_id: {explore_id}.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e
 
     async def _arun(
         self,
@@ -51,6 +65,13 @@ class GetExplore(BaseTool):
         explore_id: str,
         run_manager: Optional[AsyncCallbackManagerForToolRun] = None
     ) -> GetExploreV1Response:
-        if run_manager is not None:
-            return self._run(project_uuid, explore_id, run_manager=run_manager.get_sync())
-        return self._run(project_uuid, explore_id)
+        try:
+            if run_manager is not None:
+                return self._run(project_uuid, explore_id, run_manager=run_manager.get_sync())
+            return self._run(project_uuid, explore_id)
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving explore asynchronously with project_uuid: {project_uuid} and explore_id: {explore_id}.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e
