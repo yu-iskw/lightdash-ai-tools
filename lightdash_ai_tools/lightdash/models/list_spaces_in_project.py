@@ -15,7 +15,7 @@
 
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 
 class UserAccess(BaseModel):
@@ -31,7 +31,7 @@ class UserAccess(BaseModel):
     firstName: Optional[str] = Field(..., description="The user's first name")
     userUuid: Optional[str] = Field(..., description="The UUID of the user")
     # NOTE: Hide email for privacy
-    # email: Optional[str] = Field(..., description="The user's email address")
+    email: SecretStr = Field(..., description="The user's email address")
 
 class Space(BaseModel):
     """Space model"""

@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Type
+from typing import List, Optional, Type
 
-from langchain_core.callbacks import AsyncCallbackManagerForToolRun
+from langchain_core.callbacks import (
+    AsyncCallbackManagerForToolRun,
+    CallbackManagerForToolRun,
+)
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
@@ -38,12 +41,12 @@ class GetProjects(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self) -> str:
+    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[str]:
         response = ListOrganizationProjects(client=self.lightdash_client).call()
         projects = response.results
         return [project.model_dump_json() for project in projects]
 
     async def _arun(
       self,
-      run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
+      run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[str]:
         return self._run(run_manager=run_manager.get_sync())

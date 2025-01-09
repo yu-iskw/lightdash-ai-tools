@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Type
+from typing import List, Optional, Type
 
-from langchain_core.callbacks import AsyncCallbackManagerForToolRun
-from langchain_core.pydantic_v1 import BaseModel
+from langchain_core.callbacks import (
+    AsyncCallbackManagerForToolRun,
+    CallbackManagerForToolRun,
+)
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
@@ -37,7 +39,7 @@ class GetSpacesInProject(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, project_uuid: str) -> str:
+    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[str]:
         response = ListSpacesInProject(client=self.lightdash_client).call(project_uuid)
         spaces = response.results
         return [space.model_dump_json() for space in spaces]
@@ -45,5 +47,5 @@ class GetSpacesInProject(BaseTool):
     async def _arun(
       self,
       project_uuid: str,
-      run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
+      run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[str]:
         return self._run(project_uuid, run_manager=run_manager.get_sync())
