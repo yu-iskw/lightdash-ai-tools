@@ -13,10 +13,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -e
+set -Eeuo pipefail
 
 # Constants
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-MODULE_DIR="$(dirname "$SCRIPT_DIR")"
+SCRIPT_FILE="$(readlink -f "$0")"
+SCRIPT_DIR="$(dirname "${SCRIPT_FILE}")"
+MODULE_DIR="$(dirname "${SCRIPT_DIR}")"
 
 pytest -v -s --cache-clear "${MODULE_DIR}/tests"

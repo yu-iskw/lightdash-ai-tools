@@ -48,13 +48,15 @@ test:
 
 # Build the package
 .PHONY: build
-build: clean lint test
+build:
 	bash -x ./dev/build.sh
 
 # Clean the environment
 .PHONY: clean
 clean:
 	bash ./dev/clean.sh
+
+all: clean lint test build
 
 # Publish to pypi
 .PHONY: publish

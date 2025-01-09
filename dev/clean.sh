@@ -17,18 +17,18 @@ set -e
 set -x
 
 # Constants
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-MODULE_DIR="$(dirname "$SCRIPT_DIR")"
+SCRIPT_FILE="$(readlink -f "$0")"
+SCRIPT_DIR="$(dirname "${SCRIPT_FILE}")"
+MODULE_DIR="$(dirname "${SCRIPT_DIR}")"
 
 cleaned_dirs=(
-  dist
-  sdist
-  .pytest_cache
+	dist
+	sdist
+	.pytest_cache
 )
 
-for cleaned_dir in "${cleaned_dirs[@]}"
-do
-  if [ -d "${MODULE_DIR}/${cleaned_dir}" ] ; then
-      rm -r "${MODULE_DIR:?}/${cleaned_dir}"
-  fi
+for cleaned_dir in "${cleaned_dirs[@]}"; do
+	if [[ -d "${MODULE_DIR}/${cleaned_dir}" ]]; then
+		rm -r "${MODULE_DIR:?}/${cleaned_dir}"
+	fi
 done
