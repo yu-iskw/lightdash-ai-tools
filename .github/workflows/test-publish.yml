@@ -47,6 +47,8 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
       - name: Install packages
+        env:
+          PACKAGE_VERSION: "${{ inputs.package_version }}"
         run: |
           python3 -m pip install -U pip==23.1.0
           python3 -m pip install \
