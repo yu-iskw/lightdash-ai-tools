@@ -18,10 +18,10 @@ from langchain_core.callbacks import AsyncCallbackManagerForToolRun
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
-from langchain_lightdash.lightdash.api.list_organization_projects_v1 import (
+from lightdash_ai_tools.lightdash.api.list_organization_projects_v1 import (
     ListOrganizationProjects,
 )
-from langchain_lightdash.lightdash.client import LightdashClient
+from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
 class GetProjectsInput(BaseModel):

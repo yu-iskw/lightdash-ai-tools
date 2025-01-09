@@ -19,7 +19,7 @@ from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
-from langchain_lightdash.lightdash.client import LightdashClient, RequestType
+from lightdash_ai_tools.lightdash.client import LightdashClient, RequestType
 
 T = TypeVar("T", bound=BaseModel)
 

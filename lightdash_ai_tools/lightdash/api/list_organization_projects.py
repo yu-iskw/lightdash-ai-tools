@@ -13,9 +13,9 @@
 # limitations under the License.
 
 
-from langchain_lightdash.lightdash.api.base import BaseLightdashApiCaller
-from langchain_lightdash.lightdash.client import RequestType
-from langchain_lightdash.lightdash.models.list_organization_projects_v1 import (
+from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
+from lightdash_ai_tools.lightdash.client import RequestType
+from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
     ListOrganizationProjectsResponse,
 )
 
@@ -24,8 +24,6 @@ class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsRe
     """Gets all projects of the current user's organization"""
     request_type = RequestType.GET
     path = "/api/v1/org/projects"
-
-    response_model = ListOrganizationProjectsResponse
 
     def call(self) -> ListOrganizationProjectsResponse:
         """

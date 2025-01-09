@@ -21,7 +21,7 @@ MODULE_DIR="$(dirname "${SCRIPT_DIR}")"
 
 # Arguments
 deps="production"
-use_venv=false
+use_venv=true
 while (($# > 0)); do
 	if [[ $1 == "--use-venv" ]]; then
 		use_venv=true
@@ -65,5 +65,5 @@ fi
 if [[ ${deps} == "production" ]]; then
 	uv pip install "${UV_PIP_OPTIONS[@]}" -e "."
 else
-	uv pip install "${UV_PIP_OPTIONS[@]}" -e ".[dev,test]"
+	uv pip install "${UV_PIP_OPTIONS[@]}" -e ".[dev,langchain]"
 fi

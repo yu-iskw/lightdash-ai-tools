@@ -20,8 +20,8 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from utils import print_stream
 
-from langchain_lightdash.langchain.tools.get_project import GetProject
-from langchain_lightdash.lightdash.client import LightdashClient
+from lightdash_ai_tools.langchain.tools.get_project import GetProject
+from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
 def main(project_uuid: str):

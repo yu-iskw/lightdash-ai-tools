@@ -48,7 +48,7 @@ jobs:
           sleep 30
       - name: Install package
         run: |
-          python3 -m pip install -U langchain-lightdash
+          python3 -m pip install -U langchain-ai-tools
       - name: Test package
         run: |
-          python -c 'import langchain_lightdash; print(langchain_lightdash.__version__)'
+          python -c 'import langchain_ai_tools; print(langchain_ai_tools.__version__)'

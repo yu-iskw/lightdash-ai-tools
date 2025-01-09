@@ -308,35 +308,6 @@ wheels = [
 ]
 
 [[package]]
-name = "langchain-lightdash"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "langchain-core" },
-    { name = "pydantic" },
-    { name = "requests" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "build" },
-    { name = "langchain-openai" },
-    { name = "langgraph" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "build", marker = "extra == 'dev'", specifier = ">=1.2.2.post1" },
-    { name = "langchain-core", specifier = ">=0.3" },
-    { name = "langchain-openai", marker = "extra == 'dev'", specifier = ">=0.2.14" },
-    { name = "langgraph", marker = "extra == 'dev'", specifier = ">=0.2.61" },
-    { name = "pydantic", specifier = ">=2.9" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0,<9.0" },
-    { name = "requests", specifier = ">=2.32" },
-]
-
-[[package]]
 name = "langchain-openai"
 version = "0.2.14"
 source = { registry = "https://pypi.org/simple" }
@@ -404,6 +375,37 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d4/f8/d642c101267101ddeb44f898a98a5700f90c8959a4119c341a9678fe18cc/langsmith-0.2.10.tar.gz", hash = "sha256:153c7b3ccbd823528ff5bec84801e7e50a164e388919fc583252df5b27dd7830", size = 314154 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/91/e72d13f6b57a0ea9d884ab1d3388f544d7fe3354dbe1d4dd67678693a9fd/langsmith-0.2.10-py3-none-any.whl", hash = "sha256:b02f2f174189ff72e54c88b1aa63343defd6f0f676c396a690c63a4b6495dcc2", size = 326432 },
+]
+
+[[package]]
+name = "lightdash-ai-tools"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "pydantic" },
+    { name = "requests" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "build" },
+    { name = "langchain-openai" },
+    { name = "langgraph" },
+    { name = "pytest" },
+]
+langchain = [
+    { name = "langchain-core" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "build", marker = "extra == 'dev'", specifier = ">=1.2.2.post1" },
+    { name = "langchain-core", marker = "extra == 'langchain'", specifier = ">=0.3" },
+    { name = "langchain-openai", marker = "extra == 'dev'", specifier = ">=0.2.14" },
+    { name = "langgraph", marker = "extra == 'dev'", specifier = ">=0.2.61" },
+    { name = "pydantic", specifier = ">=2.9" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0,<9.0" },
+    { name = "requests", specifier = ">=2.32" },
 ]
 
 [[package]]
