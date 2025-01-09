@@ -12,24 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
-from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
-    ListOrganizationProjectsResponse,
+from lightdash_ai_tools.lightdash.models.list_spaces_in_project import (
+    ListSpacesInProjectResponse,
 )
 
 
-class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsResponse]):
-    """Gets all projects of the current user's organization"""
+class ListSpacesInProject(BaseLightdashApiCaller[ListSpacesInProjectResponse]):
+    """Gets all spaces in a project"""
     request_type = RequestType.GET
-    path = "/api/v1/org/projects"
 
-    def call(self) -> ListOrganizationProjectsResponse:
+    response_model = ListSpacesInProjectResponse
+
+    def call(self, project_uuid: str) -> ListSpacesInProjectResponse:
         """
-        Retrieve all projects in the current organization.
+        Retrieve all spaces in the current project.
 
         Returns:
-            ListOrganizationProjectsResponse: List of organization projects.
+            ListSpacesInProjectResponse: List of spaces in the project.
         """
-        return super()._call()
+        path = "/api/v1/projects/{projectUuid}/spaces".format(projectUuid=project_uuid)
+        return super()._call(path=path)

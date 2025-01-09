@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse  # Importing argparse to fix the undefined variable error
+import argparse
 import os
 
+from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
+from utils import print_stream
 
-from lightdash_ai_tools.langchain.tools.get_project import GetProject
+from lightdash_ai_tools.langchain.tools import get_all_readable_tools
 from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
-def main(project_uuid: str):
+def main(question: str):
     lightdash_url = os.getenv("LIGHTDASH_URL")
     lightdash_api_key = os.getenv("LIGHTDASH_API_KEY")
     if not lightdash_url or not lightdash_api_key:
@@ -33,24 +36,22 @@ def main(project_uuid: str):
         token=lightdash_api_key,
     )
 
-    # Create the tool
-    get_project_tool = GetProject(lightdash_client=client)
-    tools = [get_project_tool]
-
-    # Create the LLM
+    # Create the agent with the tools
     llm = ChatOpenAI(model="gpt-4o-mini")
+    tools = get_all_readable_tools(lightdash_client=client)
+    agent = create_react_agent(llm, tools)
 
-    # Run the tool calls
-    question = f"What is the project name of the project with uuid {project_uuid}?"
-    tool_calls = llm.bind_tools(tools).invoke(question).tool_calls
-    for tool_call in tool_calls:
-        result = tools[0].invoke(tool_call["args"])
-        print(result)
+    # Run the agent
+    messages = [
+      HumanMessage(content=question),
+      ]
+    events = agent.stream({"messages": messages}, stream_mode="values")
+    print_stream(events)
 
 
 if __name__ == "__main__":
     # parse args
     parser = argparse.ArgumentParser()
-    parser.add_argument("--project_uuid", type=str, required=True)
+    parser.add_argument("--question", type=str, required=True)
     args = parser.parse_args()
-    main(args.project_uuid)
+    main(question=args.question)

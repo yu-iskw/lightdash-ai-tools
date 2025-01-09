@@ -23,7 +23,6 @@ from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
 class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsResponse]):
     """Gets all projects of the current user's organization"""
     request_type = RequestType.GET
-    path = "/api/v1/org/projects"
 
     response_model = ListOrganizationProjectsResponse
 
@@ -34,4 +33,5 @@ class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsRe
         Returns:
             ListOrganizationProjectsResponse: List of organization projects.
         """
-        return super()._call()
+        path = "/api/v1/org/projects"
+        return super()._call(path=path)

@@ -22,7 +22,6 @@ from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectRespons
 class GetProjectV1(BaseLightdashApiCaller[GetProjectResponse]):
     """Get a Lightdash Project"""
     request_type = RequestType.GET
-    path = "/api/v1/projects/{project_uuid}"
     response_model = GetProjectResponse
 
     def call(self, project_uuid: str) -> GetProjectResponse:
@@ -35,6 +34,5 @@ class GetProjectV1(BaseLightdashApiCaller[GetProjectResponse]):
         Returns:
             GetProjectResponse: Details of the retrieved project.
         """
-        formatted_path = self.path.format(project_uuid=project_uuid)
-        self.path = formatted_path
-        return super()._call()
+        formatted_path = "/api/v1/projects/{project_uuid}".format(project_uuid=project_uuid)
+        return super()._call(path=formatted_path)
