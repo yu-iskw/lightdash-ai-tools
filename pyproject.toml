@@ -29,3 +29,6 @@ classifiers = [
 ]
 description = "A dbt artifacts parser in python"
 dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<9.0"]
