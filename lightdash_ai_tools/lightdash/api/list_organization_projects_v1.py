@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from typing import Any, Dict
+
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
 from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
@@ -24,14 +26,16 @@ class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsRe
     """Gets all projects of the current user's organization"""
     request_type = RequestType.GET
 
-    response_model = ListOrganizationProjectsResponse
-
-    def call(self) -> ListOrganizationProjectsResponse:
+    def _request(self) -> Dict[str, Any]:
         """
         Retrieve all projects in the current organization.
 
         Returns:
             ListOrganizationProjectsResponse: List of organization projects.
         """
-        path = "/api/v1/org/projects"
-        return super()._call(path=path)
+        formatted_path = "/api/v1/org/projects"
+        response_data = self.client.call(self.request_type, formatted_path)
+        return response_data
+
+    def _parse_response(self, response_data: Dict[str, Any]) -> ListOrganizationProjectsResponse:
+        return ListOrganizationProjectsResponse(**response_data)

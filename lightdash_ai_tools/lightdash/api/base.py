@@ -12,22 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, Optional, Type, TypeVar
-
-from pydantic import BaseModel
+from typing import Any, Dict, Generic, TypeVar
 
 from lightdash_ai_tools.lightdash.client import LightdashClient, RequestType
 
-T = TypeVar("T", bound=BaseModel)
+T = TypeVar("T")
 
 class BaseLightdashApiCaller(Generic[T], ABC):
     """Base class for Lightdash API callers"""
 
     request_type: RequestType
-    response_model: Type[T]
 
     def __init__(self, client: LightdashClient):
         """
@@ -38,7 +33,6 @@ class BaseLightdashApiCaller(Generic[T], ABC):
         """
         self.client = client
 
-    @abstractmethod
     def call(self, *args: Any, **kwargs: Any) -> T:
         """
         Abstract method to be implemented by subclasses.
@@ -46,27 +40,28 @@ class BaseLightdashApiCaller(Generic[T], ABC):
         Raises:
             NotImplementedError: If not implemented by a subclass.
         """
-        raise NotImplementedError("Subclasses must implement this method")
-
-    def _call(
-        self,
-        path: str,
-        parameters: Optional[Dict[str, str]] = None,
-        data: Optional[Dict[str, Any]] = None,
-    ) -> T:
-        """
-        Internal method to call the Lightdash API.
-
-        Args:
-            parameters (Optional[Dict[str, str]], optional): Query parameters. Defaults to None.
-            data (Optional[Dict[str, Any]], optional): Request body data. Defaults to None.
-
-        Returns:
-            T: The response from the API call.
-        """
-        response_data = self.client.call(self.request_type, path, parameters, data)
+        response_data = self._request(*args, **kwargs)
         return self._parse_response(response_data)
 
+    @abstractmethod
+    def _request(
+        self,
+        *args: Any,
+        **kwargs: Any
+    ) -> Dict[str, Any]:
+        """
+        Makes a request to the Lightdash API and returns the raw response.
+
+        Args:
+            *args: Any positional arguments.
+            **kwargs: Any keyword arguments.
+
+        Returns:
+            Dict[str, Any]: The raw response data from the API.
+        """
+        raise NotImplementedError("Subclasses must implement this method")
+
+    @abstractmethod
     def _parse_response(self, response_data: Dict[str, Any]) -> T:
         """
         Parse the API response into the expected model.
@@ -77,5 +72,4 @@ class BaseLightdashApiCaller(Generic[T], ABC):
         Returns:
             T: Parsed response model.
         """
-        # Use the type of the current instance to instantiate the expected model
-        return self.response_model(**response_data)  # type: ignore
+        raise NotImplementedError("Subclasses must implement this method")

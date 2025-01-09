@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Dict
+
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
 from lightdash_ai_tools.lightdash.models.get_project_access_list_v1 import (
@@ -22,9 +24,8 @@ from lightdash_ai_tools.lightdash.models.get_project_access_list_v1 import (
 class GetProjectAccessListV1(BaseLightdashApiCaller[GetProjectAccessListV1Response]):
     """Get project access list"""
     request_type = RequestType.GET
-    response_model = GetProjectAccessListV1Response
 
-    def call(self, project_uuid: str) -> GetProjectAccessListV1Response:
+    def _request(self, project_uuid: str) -> Dict[str, Any]:
         """
         Retrieve the access list for a specific project.
 
@@ -35,4 +36,8 @@ class GetProjectAccessListV1(BaseLightdashApiCaller[GetProjectAccessListV1Respon
             GetProjectAccessListV1Response: Details of the project's access list.
         """
         formatted_path = "/api/v1/projects/{project_uuid}/access".format(project_uuid=project_uuid)
-        return super()._call(path=formatted_path)
+        response_data = self.client.call(self.request_type, formatted_path)
+        return response_data
+
+    def _parse_response(self, response_data: Dict[str, Any]) -> GetProjectAccessListV1Response:
+        return GetProjectAccessListV1Response(**response_data)
