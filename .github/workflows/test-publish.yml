@@ -54,7 +54,7 @@ jobs:
             --extra-index-url https://pypi.org/simple/ \
             --force-reinstall \
             --use-feature=fast-deps \
-            -U langchain-ai-tools=="${PACKAGE_VERSION}"
+            -U lightdash-ai-tools=="${PACKAGE_VERSION}"
       # It takes some time when the package gets available.
       - name: Sleep
         run: |

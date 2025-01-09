@@ -28,7 +28,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Typing :: Typed",
 ]
-description = "A dbt artifacts parser in python"
+description = "AI tools for Lightdash"
 dependencies = ["pydantic>=2.9", "requests>=2.32"]
 
 [project.optional-dependencies]
