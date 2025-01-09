@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
@@ -25,16 +25,15 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
     """API call to list organization members."""
 
     request_type = RequestType.GET
-    response_model = ListOrganizationMembersV1Response
 
-    def call(
+    def _request(
         self,
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         search_query: Optional[str] = None,
         project_uuid: Optional[str] = None,
         include_groups: Optional[float] = None
-    ) -> ListOrganizationMembersV1Response:
+    ) -> Dict[str, Any]:
         """
         List organization members.
 
@@ -46,11 +45,11 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
             include_groups: Optional parameter for groups
 
         Returns:
-            ListOrganizationMembersV1Response
+            Dict[str, Any]
         """
         if page_size is None:
             page_size = 100
-        params = {
+        parameters = {
             k: str(v) for k, v in {
                 'page': page,
                 'pageSize': page_size,
@@ -60,4 +59,9 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
             }.items() if v is not None
         }
 
-        return self._call('/api/v1/org/users', parameters=params)
+        formatted_path = "/api/v1/org/users"
+        response_data = self.client.call(self.request_type, formatted_path, parameters=parameters)
+        return response_data
+
+    def _parse_response(self, response_data: Dict[str, Any]) -> ListOrganizationMembersV1Response:
+        return ListOrganizationMembersV1Response(**response_data)

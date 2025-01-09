@@ -21,7 +21,7 @@ import argparse
 import os
 
 from langchain_core.messages import HumanMessage
-from langchain_openai import ChatOpenAI
+from langchain_google_vertexai import ChatVertexAI
 from langgraph.prebuilt import create_react_agent
 
 from lightdash_ai_tools.langchain.tools import get_all_readable_tools
@@ -40,7 +40,7 @@ def main(question: str):
     )
 
     # Create the agent with the tools
-    llm = ChatOpenAI(model="gpt-4o")
+    llm = ChatVertexAI(model_name="gemini-1.5-flash")
     tools = get_all_readable_tools(lightdash_client=client)
     agent = create_react_agent(llm, tools)
 

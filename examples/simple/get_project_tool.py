@@ -15,7 +15,10 @@
 import argparse  # Importing argparse to fix the undefined variable error
 import os
 
+from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
+from utils import print_stream
 
 from lightdash_ai_tools.langchain.tools.get_project import GetProjectTool
 from lightdash_ai_tools.lightdash.client import LightdashClient
@@ -41,12 +44,20 @@ def main(project_uuid: str):
     llm = ChatOpenAI(model="gpt-4o-mini")
 
     # Run the tool calls
+    llm = ChatOpenAI(model="gpt-4o-mini")
     question = f"What is the project name of the project with uuid {project_uuid}?"
     tool_calls = llm.bind_tools(tools).invoke(question).tool_calls
     for tool_call in tool_calls:
         result = tools[0].invoke(tool_call["args"])
         print(result)
 
+    # Run the agent
+    agent = create_react_agent(llm, tools)
+    messages = [
+      HumanMessage(content=question),
+      ]
+    events = agent.stream({"messages": messages}, stream_mode="values")
+    print_stream(events)
 
 if __name__ == "__main__":
     # parse args

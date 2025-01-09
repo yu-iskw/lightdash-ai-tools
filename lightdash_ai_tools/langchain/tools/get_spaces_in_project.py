@@ -12,40 +12,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from typing import List, Optional, Type
 
 from langchain_core.callbacks import (
     AsyncCallbackManagerForToolRun,
     CallbackManagerForToolRun,
 )
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel
 
-from lightdash_ai_tools.lightdash.api.list_spaces_in_project import ListSpacesInProject
+from lightdash_ai_tools.lightdash.api.list_spaces_in_project_v1 import (
+    ListSpacesInProject,
+)
 from lightdash_ai_tools.lightdash.client import LightdashClient
+from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import Space
 
 
-class GetSpacesInProjectInput(BaseModel):
-    """Input for the GetSpacesInProject tool."""
+class GetSpacesInProjectToolInput(BaseModel):
+    """Input for the GetSpacesInProjectTool tool."""
     project_uuid: str
 
-class GetSpacesInProject(BaseTool):
+class GetSpacesInProjectTool(BaseTool):
     """Get spaces in a project"""
 
     name: str = "get_spaces_in_project"
     description: str = "Get spaces in a project"
-    args_schema: Type[BaseModel] = GetSpacesInProjectInput
+    args_schema: Type[BaseModel] = GetSpacesInProjectToolInput
     return_direct: bool = False
+    handle_tool_error: bool = True
 
     lightdash_client: LightdashClient
 
-    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[str]:
-        response = ListSpacesInProject(client=self.lightdash_client).call(project_uuid)
-        spaces = response.results
-        return [space.model_dump_json() for space in spaces]
+    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[Space]:
+        try:
+            response = ListSpacesInProject(client=self.lightdash_client).call(project_uuid)
+            return response.results
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving spaces in project.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e
 
     async def _arun(
       self,
       project_uuid: str,
       run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[str]:
-        return self._run(project_uuid, run_manager=run_manager.get_sync())
+        try:
+            if run_manager is not None:
+                return self._run(project_uuid, run_manager=run_manager.get_sync())
+            return self._run(project_uuid)
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving spaces in project asynchronously.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e

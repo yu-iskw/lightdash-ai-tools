@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Dict
+
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
 from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Response
@@ -20,9 +22,8 @@ from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Respo
 class GetExploreV1(BaseLightdashApiCaller[GetExploreV1Response]):
     """Get a specific explore for a project"""
     request_type = RequestType.GET
-    response_model = GetExploreV1Response
 
-    def call(self, project_uuid: str, explore_id: str) -> GetExploreV1Response:
+    def _request(self, project_uuid: str, explore_id: str) -> Dict[str, Any]:
         """
         Retrieve a specific explore for a project.
 
@@ -33,5 +34,9 @@ class GetExploreV1(BaseLightdashApiCaller[GetExploreV1Response]):
         Returns:
             GetExploreV1Response: Details of the explore.
         """
-        formatted_path = f"/api/v1/projects/{project_uuid}/explores/{explore_id}"
-        return super()._call(path=formatted_path)
+        formatted_path = f"/api/v1/projects/{project_uuid}/explores/{explore_id}".format(project_uuid=project_uuid, explore_id=explore_id)
+        response_data = self.client.call(self.request_type, formatted_path)
+        return response_data
+
+    def _parse_response(self, response_data: Dict[str, Any]) -> GetExploreV1Response:
+        return GetExploreV1Response(**response_data)

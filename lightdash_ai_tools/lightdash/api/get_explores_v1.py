@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
 from lightdash_ai_tools.lightdash.models.get_explores_v1 import GetExploresV1Response
@@ -6,9 +8,8 @@ from lightdash_ai_tools.lightdash.models.get_explores_v1 import GetExploresV1Res
 class GetExploresV1(BaseLightdashApiCaller[GetExploresV1Response]):
     """Get explores for a project"""
     request_type = RequestType.GET
-    response_model = GetExploresV1Response
 
-    def call(self, project_uuid: str) -> GetExploresV1Response:
+    def _request(self, project_uuid: str) -> Dict[str, Any]:
         """
         Retrieve explores for a specific project.
 
@@ -19,4 +20,8 @@ class GetExploresV1(BaseLightdashApiCaller[GetExploresV1Response]):
             GetExploresV1Response: Details of the project's explores.
         """
         formatted_path = "/api/v1/projects/{project_uuid}/explores".format(project_uuid=project_uuid)
-        return super()._call(path=formatted_path)
+        response_data = self.client.call(self.request_type, formatted_path)
+        return response_data
+
+    def _parse_response(self, response_data: Dict[str, Any]) -> GetExploresV1Response:
+        return GetExploresV1Response(**response_data)
