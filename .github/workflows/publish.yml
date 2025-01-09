@@ -28,7 +28,7 @@ jobs:
       # It takes some time when the package gets available.
       - name: Sleep
         run: |
-          sleep 30
+          sleep 120
 
   test-published-package:
     needs:

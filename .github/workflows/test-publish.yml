@@ -32,7 +32,7 @@ jobs:
       # It takes some time when the package gets available.
       - name: Sleep
         run: |
-          sleep 30
+          sleep 120
 
   test-published-package:
     needs:
@@ -64,4 +64,4 @@ jobs:
             -U lightdash-ai-tools=="${{ env.PACKAGE_VERSION }}"
       - name: Show packages
         run: |
-          uv pip list
+          pip list
