@@ -14,7 +14,10 @@
 
 from typing import Optional, Type
 
-from langchain_core.callbacks import AsyncCallbackManagerForToolRun
+from langchain_core.callbacks import (
+    AsyncCallbackManagerForToolRun,
+    CallbackManagerForToolRun,
+)
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
@@ -36,7 +39,7 @@ class GetProject(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, project_uuid: str) -> str:
+    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         response = GetProjectV1(client=self.lightdash_client).call(project_uuid)
         return response.results.model_dump_json()
 

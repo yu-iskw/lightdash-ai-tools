@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -22,8 +22,8 @@ class OrganizationProject(BaseModel):
     model_config = ConfigDict(extra='allow')
 
     warehouseType: str = Field(..., description='The type of warehouse to use')
-    upstreamProjectUuid: str = Field(..., description='The UUID of the upstream project')
-    createdByUserUuid: str = Field(..., description='The UUID of the user who created the project')
+    upstreamProjectUuid: Optional[str] = Field(..., description='The UUID of the upstream project')
+    createdByUserUuid: Optional[str] = Field(..., description='The UUID of the user who created the project')
     type: str = Field(..., description='The type of project')
     name: str = Field(..., description='The name of the project')
     projectUuid: str = Field(..., description='The UUID of the project')

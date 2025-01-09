@@ -21,32 +21,31 @@ from langchain_core.callbacks import (
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
-from lightdash_ai_tools.lightdash.api.list_organization_projects_v1 import (
-    ListOrganizationProjects,
-)
+from lightdash_ai_tools.lightdash.api.list_spaces_in_project import ListSpacesInProject
 from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
-class GetProjectsInput(BaseModel):
-    """Input for the GetProjects tool."""
+class GetSpacesInProjectInput(BaseModel):
+    """Input for the GetSpacesInProject tool."""
+    project_uuid: str
 
+class GetSpacesInProject(BaseTool):
+    """Get spaces in a project"""
 
-class GetProjects(BaseTool):
-    """Get project details by UUID."""
-
-    name: str = "get_project"
-    description: str = "Fetches the project associated with the given UUID."
-    args_schema: Type[BaseModel] = GetProjectsInput
+    name: str = "get_spaces_in_project"
+    description: str = "Get spaces in a project"
+    args_schema: Type[BaseModel] = GetSpacesInProjectInput
     return_direct: bool = False
 
     lightdash_client: LightdashClient
 
-    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[str]:
-        response = ListOrganizationProjects(client=self.lightdash_client).call()
-        projects = response.results
-        return [project.model_dump_json() for project in projects]
+    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[str]:
+        response = ListSpacesInProject(client=self.lightdash_client).call(project_uuid)
+        spaces = response.results
+        return [space.model_dump_json() for space in spaces]
 
     async def _arun(
       self,
+      project_uuid: str,
       run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[str]:
-        return self._run(run_manager=run_manager.get_sync())
+        return self._run(project_uuid, run_manager=run_manager.get_sync())

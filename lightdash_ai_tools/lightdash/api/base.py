@@ -27,7 +27,6 @@ class BaseLightdashApiCaller(Generic[T], ABC):
     """Base class for Lightdash API callers"""
 
     request_type: RequestType
-    path: str
     response_model: Type[T]
 
     def __init__(self, client: LightdashClient):
@@ -51,6 +50,7 @@ class BaseLightdashApiCaller(Generic[T], ABC):
 
     def _call(
         self,
+        path: str,
         parameters: Optional[Dict[str, str]] = None,
         data: Optional[Dict[str, Any]] = None,
     ) -> T:
@@ -64,7 +64,7 @@ class BaseLightdashApiCaller(Generic[T], ABC):
         Returns:
             T: The response from the API call.
         """
-        response_data = self.client.call(self.request_type, self.path, parameters, data)
+        response_data = self.client.call(self.request_type, path, parameters, data)
         return self._parse_response(response_data)
 
     def _parse_response(self, response_data: Dict[str, Any]) -> T:
