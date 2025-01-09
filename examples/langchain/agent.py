@@ -37,7 +37,7 @@ def main(question: str):
     )
 
     # Create the agent with the tools
-    llm = ChatOpenAI(model="gpt-4o-mini")
+    llm = ChatOpenAI(model="gpt-4o")
     tools = get_all_readable_tools(lightdash_client=client)
     agent = create_react_agent(llm, tools)
 
