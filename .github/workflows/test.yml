@@ -5,7 +5,7 @@ on:
     paths:
       - .github/workflows/test.yml
       - pyproject.toml
-      - dbt_artifacts_parser/**/*.py
+      - langchain_lightdash/**/*.py
       - tests/**/*.py
       - pylintrc
   push:
@@ -42,4 +42,4 @@ jobs:
       - name: Test installation
         run: |
           pip install -e .
-          python -c 'import dbt_artifacts_parser'
+          python -c 'import langchain_lightdash'
