@@ -29,16 +29,16 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResults
 
 
-class GetProjectsInput(BaseModel):
-    """Input for the GetProjects tool."""
+class GetProjectsToolInput(BaseModel):
+    """Input for the GetProjectsTool tool."""
 
 
-class GetProjects(BaseTool):
+class GetProjectsTool(BaseTool):
     """Get project details by UUID."""
 
     name: str = "get_projects"
     description: str = "Get all projects in the organization."
-    args_schema: Type[BaseModel] = GetProjectsInput
+    args_schema: Type[BaseModel] = GetProjectsToolInput
     return_direct: bool = False
     handle_tool_error: bool = True
 

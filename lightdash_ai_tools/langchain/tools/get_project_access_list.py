@@ -28,17 +28,17 @@ from lightdash_ai_tools.lightdash.api.get_project_access_list_v1 import (
 from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
-class GetProjectAccessListInput(BaseModel):
-    """Input for the GetProjectAccessList tool."""
+class GetProjectAccessListToolInput(BaseModel):
+    """Input for the GetProjectAccessListTool tool."""
     project_uuid: str = Field(description="The UUID of the project to get access list for")
 
 
-class GetProjectAccessList(BaseTool):
+class GetProjectAccessListTool(BaseTool):
     """Get project access list"""
 
     name: str = "get_project_access_list"
     description: str = "Get the list of users with access to a specific project"
-    args_schema: Type[BaseModel] = GetProjectAccessListInput
+    args_schema: Type[BaseModel] = GetProjectAccessListToolInput
     return_direct: bool = False
     handle_tool_error: bool = True
 

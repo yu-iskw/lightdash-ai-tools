@@ -27,17 +27,17 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Response
 
 
-class GetExploreInput(BaseModel):
-    """Input for the GetExplore tool."""
+class GetExploreToolInput(BaseModel):
+    """Input for the GetExploreTool tool."""
     project_uuid: str = Field(description="The UUID of the project. This is not the project name.")
     explore_id: str = Field(description="The ID of the explore to retrieve.")
 
-class GetExplore(BaseTool):
+class GetExploreTool(BaseTool):
     """Get a specific explore in a project"""
 
     name: str = "get_explore"
     description: str = "Get a specific explore (table) in a project."
-    args_schema: Type[BaseModel] = GetExploreInput
+    args_schema: Type[BaseModel] = GetExploreToolInput
     return_direct: bool = False
     handle_tool_error: bool = True  # Enable error handling
 

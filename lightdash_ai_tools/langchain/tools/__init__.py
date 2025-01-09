@@ -16,16 +16,18 @@ from typing import List
 
 from langchain_core.tools import BaseTool
 
-from lightdash_ai_tools.langchain.tools.get_explore import GetExplore
-from lightdash_ai_tools.langchain.tools.get_explores import GetExplores
-from lightdash_ai_tools.langchain.tools.get_project import GetProject
-from lightdash_ai_tools.langchain.tools.get_project_access_list import (
-    GetProjectAccessList,
+from lightdash_ai_tools.langchain.tools.get_explore import GetExploreTool
+from lightdash_ai_tools.langchain.tools.get_explores import GetExploresTool
+from lightdash_ai_tools.langchain.tools.get_organization_members import (
+    GetOrganizationMembersTool,
 )
-from lightdash_ai_tools.langchain.tools.get_projects import GetProjects
-from lightdash_ai_tools.langchain.tools.get_spaces_in_project import GetSpacesInProject
-from lightdash_ai_tools.langchain.tools.list_organization_members import (
-    ListOrganizationMembersTool,
+from lightdash_ai_tools.langchain.tools.get_project import GetProjectTool
+from lightdash_ai_tools.langchain.tools.get_project_access_list import (
+    GetProjectAccessListTool,
+)
+from lightdash_ai_tools.langchain.tools.get_projects import GetProjectsTool
+from lightdash_ai_tools.langchain.tools.get_spaces_in_project import (
+    GetSpacesInProjectTool,
 )
 from lightdash_ai_tools.lightdash.client import LightdashClient
 
@@ -33,13 +35,13 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 def get_all_readable_tools(lightdash_client: LightdashClient) -> List[BaseTool]:
     """Get the read-only tools."""
     return [
-        GetProject(lightdash_client=lightdash_client),
-        GetProjects(lightdash_client=lightdash_client),
-        GetSpacesInProject(lightdash_client=lightdash_client),
-        ListOrganizationMembersTool(lightdash_client=lightdash_client),
-        GetProjectAccessList(lightdash_client=lightdash_client),
-        GetExplores(lightdash_client=lightdash_client),
-        GetExplore(lightdash_client=lightdash_client),
+        GetProjectTool(lightdash_client=lightdash_client),
+        GetProjectsTool(lightdash_client=lightdash_client),
+        GetSpacesInProjectTool(lightdash_client=lightdash_client),
+        GetOrganizationMembersTool(lightdash_client=lightdash_client),
+        GetProjectAccessListTool(lightdash_client=lightdash_client),
+        GetExploresTool(lightdash_client=lightdash_client),
+        GetExploreTool(lightdash_client=lightdash_client),
     ]
 
 
@@ -48,11 +50,11 @@ def get_all_readable_tools(lightdash_client: LightdashClient) -> List[BaseTool]:
 #     return []
 
 __all__ = [
-    "GetProject",
-    "GetProjects",
-    "GetSpacesInProject",
-    "ListOrganizationMembersTool",
-    "GetProjectAccessList",
-    "GetExplores",
-    "GetExplore",
+    "GetProjectTool",
+    "GetProjectsTool",
+    "GetSpacesInProjectTool",
+    "GetOrganizationMembersTool",
+    "GetProjectAccessListTool",
+    "GetExploresTool",
+    "GetExploreTool",
 ]

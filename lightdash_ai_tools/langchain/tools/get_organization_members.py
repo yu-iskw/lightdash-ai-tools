@@ -17,16 +17,16 @@ from lightdash_ai_tools.lightdash.services.list_organization_members_v1 import (
 )
 
 
-class ListOrganizationMembersInput(BaseModel):
-    """Input for the ListOrganizationMembers tool."""
+class GetOrganizationMembersToolInput(BaseModel):
+    """Input for the GetOrganizationMembersTool tool."""
 
 
-class ListOrganizationMembersTool(BaseTool):
-    """List organization members"""
+class GetOrganizationMembersTool(BaseTool):
+    """Get organization members"""
 
-    name: str = "list_organization_members"
-    description: str = "List all members of the current user's organization"
-    args_schema: Type[BaseModel] = ListOrganizationMembersInput
+    name: str = "get_organization_members"
+    description: str = "Get all members of the current user's organization"
+    args_schema: Type[BaseModel] = GetOrganizationMembersToolInput
     return_direct: bool = False
     handle_tool_error: bool = True
 
@@ -34,10 +34,10 @@ class ListOrganizationMembersTool(BaseTool):
 
     def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[OrganizationMemberModel]:
         """
-        Run method for listing organization members.
+        Run method for getting organization members.
 
         Returns:
-            JSON string of organization members
+            List of organization members
         """
         try:
             service = ListOrganizationMembersV1Service(client=self.lightdash_client)
