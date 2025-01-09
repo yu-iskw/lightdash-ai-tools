@@ -12,25 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# How to use the script
+# $ export LIGHTDASH_URL=https://your-lightdash-instance.com
+# $ export LIGHTDASH_API_KEY=your-api-key
+# $ python examples/langchain/agent.py --question "What role does Amy have in all projects?"
+
 import argparse
 import os
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
-from utils import print_stream
 
 from lightdash_ai_tools.langchain.tools import get_all_readable_tools
 from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
 def main(question: str):
+    # Create Lightdash client
     lightdash_url = os.getenv("LIGHTDASH_URL")
     lightdash_api_key = os.getenv("LIGHTDASH_API_KEY")
     if not lightdash_url or not lightdash_api_key:
         raise ValueError("Environment variables LIGHTDASH_URL and LIGHTDASH_API_KEY must be set.")
-
-    # Create Lightdash client
     client = LightdashClient(
         base_url=lightdash_url,
         token=lightdash_api_key,
@@ -46,7 +49,12 @@ def main(question: str):
       HumanMessage(content=question),
       ]
     events = agent.stream({"messages": messages}, stream_mode="values")
-    print_stream(events)
+    for s in events:
+        message = s["messages"][-1]
+        if isinstance(message, tuple):
+            print(message)
+        else:
+            message.pretty_print()
 
 
 if __name__ == "__main__":
