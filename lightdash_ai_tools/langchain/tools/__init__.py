@@ -17,6 +17,9 @@ from typing import List
 from langchain_core.tools import BaseTool
 
 from lightdash_ai_tools.langchain.tools.get_project import GetProject
+from lightdash_ai_tools.langchain.tools.get_project_access_list import (
+    GetProjectAccessList,
+)
 from lightdash_ai_tools.langchain.tools.get_projects import GetProjects
 from lightdash_ai_tools.langchain.tools.get_spaces_in_project import GetSpacesInProject
 from lightdash_ai_tools.langchain.tools.list_organization_members import (
@@ -32,6 +35,7 @@ def get_all_readable_tools(lightdash_client: LightdashClient) -> List[BaseTool]:
         GetProjects(lightdash_client=lightdash_client),
         GetSpacesInProject(lightdash_client=lightdash_client),
         ListOrganizationMembersTool(lightdash_client=lightdash_client),
+        GetProjectAccessList(lightdash_client=lightdash_client),
     ]
 
 
@@ -44,4 +48,5 @@ __all__ = [
     "GetProjects",
     "GetSpacesInProject",
     "ListOrganizationMembersTool",
+    "GetProjectAccessList",
 ]
