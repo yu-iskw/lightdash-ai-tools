@@ -34,4 +34,4 @@ description = "A dbt artifacts parser in python"
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0,<9.0"]
+dev = ["build>=1.2.2.post1", "pytest>=8.0,<9.0"]
