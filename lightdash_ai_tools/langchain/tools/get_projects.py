@@ -34,8 +34,8 @@ class GetProjectsInput(BaseModel):
 class GetProjects(BaseTool):
     """Get project details by UUID."""
 
-    name: str = "get_project"
-    description: str = "Fetches the project associated with the given UUID."
+    name: str = "get_projects"
+    description: str = "Get all projects in the organization."
     args_schema: Type[BaseModel] = GetProjectsInput
     return_direct: bool = False
 
