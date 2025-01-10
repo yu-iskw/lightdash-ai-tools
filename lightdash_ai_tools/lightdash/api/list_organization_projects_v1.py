@@ -18,11 +18,11 @@ from typing import Any, Dict
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
 from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
-    ListOrganizationProjectsResponse,
+    ListOrganizationProjectsV1Response,
 )
 
 
-class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsResponse]):
+class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsV1Response]):
     """Gets all projects of the current user's organization"""
     request_type = RequestType.GET
 
@@ -37,5 +37,5 @@ class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsRe
         response_data = self.client.call(self.request_type, formatted_path)
         return response_data
 
-    def _parse_response(self, response_data: Dict[str, Any]) -> ListOrganizationProjectsResponse:
-        return ListOrganizationProjectsResponse(**response_data)
+    def _parse_response(self, response_data: Dict[str, Any]) -> ListOrganizationProjectsV1Response:
+        return ListOrganizationProjectsV1Response(**response_data)

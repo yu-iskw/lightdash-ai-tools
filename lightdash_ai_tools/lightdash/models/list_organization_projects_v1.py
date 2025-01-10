@@ -17,7 +17,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class OrganizationProject(BaseModel):
+class ListOrganizationProjectsV1Results(BaseModel):
     """Organization project model"""
     model_config = ConfigDict(extra='allow')
 
@@ -29,7 +29,7 @@ class OrganizationProject(BaseModel):
     projectUuid: str = Field(..., description='The UUID of the project')
 
 
-class ListOrganizationProjectsResponse(BaseModel):
+class ListOrganizationProjectsV1Response(BaseModel):
     """Response model for listing organization projects"""
-    results: List[OrganizationProject] = Field(..., description='The list of projects')
+    results: List[ListOrganizationProjectsV1Results] = Field(..., description='The list of projects')
     status: str = Field(..., description='The status of the request')

@@ -33,7 +33,7 @@ class UserAccess(BaseModel):
     # NOTE: Hide email for privacy
     email: SecretStr = Field(..., description="The user's email address")
 
-class Space(BaseModel):
+class ListSpacesInProjectV1Results(BaseModel):
     """Space model"""
 
     model_config = ConfigDict(extra='allow')
@@ -51,7 +51,7 @@ class Space(BaseModel):
     access: List[str] = Field(..., description="List of access types")
     userAccess: UserAccess = Field(..., description="User access details")
 
-class ListSpacesInProjectResponse(BaseModel):
+class ListSpacesInProjectV1Response(BaseModel):
     """Response model for listing spaces in a project"""
-    results: List[Space] = Field(..., description='The list of spaces')
+    results: List[ListSpacesInProjectV1Results] = Field(..., description='The list of spaces')
     status: str = Field(..., description='The status of the request')

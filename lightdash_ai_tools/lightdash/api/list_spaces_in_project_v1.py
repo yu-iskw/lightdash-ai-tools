@@ -17,11 +17,11 @@ from typing import Any, Dict
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
 from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
-    ListSpacesInProjectResponse,
+    ListSpacesInProjectV1Response,
 )
 
 
-class ListSpacesInProject(BaseLightdashApiCaller[ListSpacesInProjectResponse]):
+class ListSpacesInProject(BaseLightdashApiCaller[ListSpacesInProjectV1Response]):
     """Gets all spaces in a project"""
     request_type = RequestType.GET
 
@@ -36,5 +36,5 @@ class ListSpacesInProject(BaseLightdashApiCaller[ListSpacesInProjectResponse]):
         response_data = self.client.call(self.request_type, formatted_path)
         return response_data
 
-    def _parse_response(self, response_data: Dict[str, Any]) -> ListSpacesInProjectResponse:
-        return ListSpacesInProjectResponse(**response_data)
+    def _parse_response(self, response_data: Dict[str, Any]) -> ListSpacesInProjectV1Response:
+        return ListSpacesInProjectV1Response(**response_data)

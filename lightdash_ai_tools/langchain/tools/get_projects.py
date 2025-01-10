@@ -22,11 +22,11 @@ from langchain_core.callbacks import (
 from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel
 
-from lightdash_ai_tools.lightdash.api.list_organization_projects_v1 import (
-    ListOrganizationProjects,
-)
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResults
+from lightdash_ai_tools.lightdash.controller.get_projects import GetProjectsController
+from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
+    ListOrganizationProjectsV1Results,
+)
 
 
 class GetProjectsToolInput(BaseModel):
@@ -44,10 +44,11 @@ class GetProjectsTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[GetProjectResults]:
+    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListOrganizationProjectsV1Results]:
         try:
-            response = ListOrganizationProjects(client=self.lightdash_client).call()
-            return response.results
+            controller = GetProjectsController(client=self.lightdash_client)
+            results = controller()
+            return results
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving organization projects.
@@ -57,7 +58,7 @@ class GetProjectsTool(BaseTool):
 
     async def _arun(
       self,
-        run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[GetProjectResults]:
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[ListOrganizationProjectsV1Results]:
         try:
             if run_manager is not None:
                 return self._run(run_manager=run_manager.get_sync())

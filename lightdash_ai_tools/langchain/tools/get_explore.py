@@ -22,8 +22,8 @@ from langchain_core.callbacks import (
 from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel, Field
 
-from lightdash_ai_tools.lightdash.api.get_explore_v1 import GetExploreV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
+from lightdash_ai_tools.lightdash.controller.get_explore import GetExploreController
 from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Response
 
 
@@ -50,8 +50,9 @@ class GetExploreTool(BaseTool):
       run_manager: Optional[CallbackManagerForToolRun] = None
       ) -> GetExploreV1Response:
         try:
-            response = GetExploreV1(client=self.lightdash_client).call(project_uuid, explore_id)
-            return response.results
+            controller = GetExploreController(client=self.lightdash_client)
+            results = controller(project_uuid, explore_id)
+            return results
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explore with project_uuid: {project_uuid} and explore_id: {explore_id}.

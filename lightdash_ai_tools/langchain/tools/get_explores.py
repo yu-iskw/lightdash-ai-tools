@@ -8,14 +8,14 @@ from langchain_core.callbacks import (
 from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel, Field
 
-from lightdash_ai_tools.lightdash.api.get_explores_v1 import GetExploresV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.models.get_explores_v1 import ExploreModel
+from lightdash_ai_tools.lightdash.controller.get_explores import GetExploresController
+from lightdash_ai_tools.lightdash.models.get_explores_v1 import GetExploresV1Results
 
 
 class GetExploresToolInput(BaseModel):
     """Input for the GetExploresTool tool."""
-    project_uuid: str = Field(description="The UUID of the project to get explores for")
+    project_uuid: str = Field(description="The UUID of the project to get explores for. That isn't the project name.")
 
 
 class GetExploresTool(BaseTool):
@@ -29,10 +29,11 @@ class GetExploresTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ExploreModel]:
+    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[GetExploresV1Results]:
         try:
-            response = GetExploresV1(client=self.lightdash_client).call(project_uuid)
-            return response.results
+            controller = GetExploresController(client=self.lightdash_client)
+            results = controller(project_uuid)
+            return results
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explores with project_uuid: {project_uuid}.
@@ -44,7 +45,7 @@ class GetExploresTool(BaseTool):
       self,
       project_uuid: str,
       run_manager: Optional[AsyncCallbackManagerForToolRun] = None
-    ) -> List[ExploreModel]:
+    ) -> List[GetExploresV1Results]:
         try:
             if run_manager is not None:
                 return self._run(project_uuid, run_manager=run_manager.get_sync())

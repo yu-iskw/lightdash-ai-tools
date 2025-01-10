@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -156,7 +156,7 @@ class Metric(BaseModel):
     dimensionReference: Optional[str] = Field(None, description="Reference to the related dimension")
 
 
-class ExploreResults(BaseModel):
+class GetExploreV1Results(BaseModel):
     """Explore results"""
     model_config = ConfigDict(extra='allow')
 
@@ -187,5 +187,5 @@ class ExploreResults(BaseModel):
 
 
 class GetExploreV1Response(BaseModel):
-    results: Optional[Union[ExploreResults, Dict[str, Any]]] = Field(None, description="Explore results")
-    status: Optional[str] = Field(None, description="Status of the API response")
+    results: GetExploreV1Results = Field(None, description="Explore results")
+    status: str = Field(None, description="Status of the API response")

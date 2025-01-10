@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class ExploreModel(BaseModel):
+class GetExploresV1Results(BaseModel):
     """Model representing an explore in Lightdash"""
     model_config = ConfigDict(extra="allow")
 
@@ -16,8 +16,7 @@ class ExploreModel(BaseModel):
     schemaName: Optional[str] = Field(default=None, description="Schema name of the explore")
     description: Optional[str] = Field(default=None, description="Description of the explore")
 
-
 class GetExploresV1Response(BaseModel):
     """Response model for GetExplores API"""
-    results: List[ExploreModel] = Field(..., description="List of explores")
+    results: List[GetExploresV1Results] = Field(..., description="List of explores")
     status: str = Field(..., description="Status of the API response")

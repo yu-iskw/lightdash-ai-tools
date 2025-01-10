@@ -54,5 +54,5 @@ class ListOrganizationMembersV1Results(BaseModel):
 
 class ListOrganizationMembersV1Response(BaseModel):
     """Response model for ListOrganizationMembers API call."""
-    results: ListOrganizationMembersV1Results = Field(..., description="List of organization members")
+    results: List[ListOrganizationMembersV1Results] = Field(..., description="List of organization members")
     status: str = Field(..., description="Status of the API response")
