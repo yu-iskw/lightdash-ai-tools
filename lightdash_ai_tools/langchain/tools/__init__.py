@@ -44,9 +44,6 @@ def get_all_readable_tools(lightdash_client: LightdashClient) -> List[BaseTool]:
         GetProjectMembersTool(lightdash_client=lightdash_client),
         GetExploresTool(lightdash_client=lightdash_client),
         GetExploreTool(lightdash_client=lightdash_client),
-        GetGroupsInOrganizationTool(lightdash_client=lightdash_client),
-        GetGroupTool(lightdash_client=lightdash_client),
-        # CompileQueryTool(lightdash_client=lightdash_client),
     ]
 
 

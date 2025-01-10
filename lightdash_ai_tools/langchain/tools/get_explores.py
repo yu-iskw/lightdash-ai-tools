@@ -29,9 +29,7 @@ class GetExploresTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self,
-             project_uuid: str,
-             run_manager: Optional[CallbackManagerForToolRun] = None) -> List[GetExploresV1Results]:
+    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ExploreModel]:
         try:
             controller = GetExploresController(lightdash_client=self.lightdash_client)
             return controller(project_uuid)
