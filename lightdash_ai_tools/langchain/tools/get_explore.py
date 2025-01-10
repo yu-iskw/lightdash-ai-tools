@@ -51,7 +51,7 @@ class GetExploreTool(BaseTool):
       ) -> GetExploreV1Response:
         try:
             response = GetExploreV1(client=self.lightdash_client).call(project_uuid, explore_id)
-            return response
+            return response.results
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explore with project_uuid: {project_uuid} and explore_id: {explore_id}.

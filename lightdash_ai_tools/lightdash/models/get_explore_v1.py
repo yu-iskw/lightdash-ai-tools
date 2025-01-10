@@ -133,6 +133,7 @@ class Dimension(BaseModel):
     timeInterval: Optional[str] = Field(None, description="Time interval for date dimensions")
     timeIntervalBaseDimensionName: Optional[str] = Field(None, description="Base dimension name for time intervals")
 
+
 class Metric(BaseModel):
     """Metric"""
     model_config = ConfigDict(extra='allow')
