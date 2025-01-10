@@ -15,9 +15,6 @@
 
 from typing import List
 
-from lightdash_ai_tools.lightdash.api.list_organization_projects_v1 import (
-    ListOrganizationProjectsV1,
-)
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
     ListOrganizationProjectsV1Results,

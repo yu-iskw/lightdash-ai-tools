@@ -22,7 +22,7 @@ from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
 )
 
 
-class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsResponse]):
+class ListOrganizationProjects(BaseLightdashApiCaller[ListOrganizationProjectsV1Response]):
     """Gets all projects of the current user's organization"""
     request_type = RequestType.GET
 
