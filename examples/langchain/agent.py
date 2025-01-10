@@ -48,7 +48,8 @@ def main(question: str):
     messages = [
       HumanMessage(content=question),
       ]
-    events = agent.stream({"messages": messages}, stream_mode="values")
+    config = {"recursion_limit": 100}
+    events = agent.stream({"messages": messages}, config, stream_mode="values")
     for s in events:
         message = s["messages"][-1]
         if isinstance(message, tuple):

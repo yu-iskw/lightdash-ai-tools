@@ -46,7 +46,7 @@ class GetProjectsTool(BaseTool):
 
     def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListOrganizationProjectsV1Results]:
         try:
-            controller = GetProjectsController(client=self.lightdash_client)
+            controller = GetProjectsController(lightdash_client=self.lightdash_client)
             results = controller()
             return results
         except Exception as e:

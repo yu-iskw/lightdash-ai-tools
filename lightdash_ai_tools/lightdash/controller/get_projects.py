@@ -16,7 +16,7 @@
 from typing import List
 
 from lightdash_ai_tools.lightdash.api.list_organization_projects_v1 import (
-    ListOrganizationProjects,
+    ListOrganizationProjectsV1,
 )
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
@@ -27,11 +27,11 @@ from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
 class GetProjectsController:
     """Controller for the GetProjects tool"""
 
-    def __init__(self, client: LightdashClient):
+    def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
-        self.client = client
+        self.lightdash_client = lightdash_client
 
     def __call__(self) -> List[ListOrganizationProjectsV1Results]:
         """Call the controller"""
-        response = ListOrganizationProjects(client=self.client).call()
+        response = ListOrganizationProjectsV1(lightdash_client=self.lightdash_client).call()
         return response.results

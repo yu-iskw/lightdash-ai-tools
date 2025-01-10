@@ -48,7 +48,7 @@ class GetSpacesInProjectTool(BaseTool):
 
     def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListSpacesInProjectV1Results]:
         try:
-            response = ListSpacesInProject(client=self.lightdash_client).call(project_uuid)
+            response = ListSpacesInProject(lightdash_client=self.lightdash_client).call(project_uuid)
             return response.results
         except Exception as e:
             error_message = textwrap.dedent(f"""\

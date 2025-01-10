@@ -34,7 +34,7 @@ class GetProjectV1(BaseLightdashApiCaller[GetProjectResponse]):
             GetProjectResponse: Details of the retrieved project.
         """
         formatted_path = "/api/v1/projects/{project_uuid}".format(project_uuid=project_uuid)
-        response_data = self.client.call(self.request_type, formatted_path)
+        response_data = self.lightdash_client.call(self.request_type, formatted_path)
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> GetProjectResponse:

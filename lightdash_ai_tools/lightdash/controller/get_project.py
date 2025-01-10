@@ -21,11 +21,11 @@ from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResults
 class GetProjectController:
     """Controller for the GetProject tool"""
 
-    def __init__(self, client: LightdashClient):
+    def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
-        self.client = client
+        self.lightdash_client = lightdash_client
 
     def __call__(self, project_uuid: str) -> GetProjectResults:
         """Call the controller"""
-        response = GetProjectV1(client=self.client).call(project_uuid)
+        response = GetProjectV1(lightdash_client=self.lightdash_client).call(project_uuid)
         return response.results

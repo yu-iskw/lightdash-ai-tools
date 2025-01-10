@@ -24,14 +24,14 @@ class BaseLightdashApiCaller(Generic[T], ABC):
 
     request_type: RequestType
 
-    def __init__(self, client: LightdashClient):
+    def __init__(self, lightdash_client: LightdashClient):
         """
         Initialize the Lightdash API caller.
 
         Args:
-            client (LightdashClient): The Lightdash client to use for API calls.
+            lightdash_client (LightdashClient): The Lightdash client to use for API calls.
         """
-        self.client = client
+        self.lightdash_client = lightdash_client
 
     def call(self, *args: Any, **kwargs: Any) -> T:
         """

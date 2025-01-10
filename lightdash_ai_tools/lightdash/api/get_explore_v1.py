@@ -35,7 +35,7 @@ class GetExploreV1(BaseLightdashApiCaller[GetExploreV1Response]):
             GetExploreV1Response: Details of the explore.
         """
         formatted_path = f"/api/v1/projects/{project_uuid}/explores/{explore_id}".format(project_uuid=project_uuid, explore_id=explore_id)
-        response_data = self.client.call(self.request_type, formatted_path)
+        response_data = self.lightdash_client.call(self.request_type, formatted_path)
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> GetExploreV1Response:

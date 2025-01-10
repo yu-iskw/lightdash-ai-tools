@@ -56,9 +56,8 @@ class GetProjectMembersTool(BaseTool):
             List of project access members as JSON strings
         """
         try:
-            controller = GetProjectMembersController(client=self.lightdash_client)
-            results = controller(project_uuid)
-            return results
+            controller = GetProjectMembersController(lightdash_client=self.lightdash_client)
+            return controller(project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving project access list.

@@ -26,12 +26,12 @@ from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
 class GetSpacesInProjectController:
     """Controller for the GetSpacesInProject tool"""
 
-    def __init__(self, client: LightdashClient):
+    def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
-        self.client = client
+        self.lightdash_client = lightdash_client
 
     def __call__(self, project_uuid: str) -> List[ListSpacesInProjectV1Results]:
         """Call the controller"""
-        response = ListSpacesInProject(client=self.client).call(project_uuid)
+        response = ListSpacesInProject(lightdash_client=self.lightdash_client).call(project_uuid)
         results = response.results
         return results
