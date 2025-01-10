@@ -17,7 +17,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 
-class ProjectAccessMemberModel(BaseModel):
+class GetProjectAccessListV1Results(BaseModel):
     """Model representing a member's access to a project."""
     model_config = ConfigDict(extra="allow")
 
@@ -31,5 +31,5 @@ class ProjectAccessMemberModel(BaseModel):
 
 class GetProjectAccessListV1Response(BaseModel):
     """Response model for GetProjectAccessList API."""
-    results: List[ProjectAccessMemberModel] = Field(default_factory=list, description="List of project access members")
+    results: List[GetProjectAccessListV1Results] = Field(default_factory=list, description="List of project access members")
     status: str = Field(description="Status of the API response", default="ok")

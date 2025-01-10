@@ -22,9 +22,7 @@ from lightdash_ai_tools.langchain.tools.get_organization_members import (
     GetOrganizationMembersTool,
 )
 from lightdash_ai_tools.langchain.tools.get_project import GetProjectTool
-from lightdash_ai_tools.langchain.tools.get_project_access_list import (
-    GetProjectAccessListTool,
-)
+from lightdash_ai_tools.langchain.tools.get_project_memgers import GetProjectMembersTool
 from lightdash_ai_tools.langchain.tools.get_projects import GetProjectsTool
 from lightdash_ai_tools.langchain.tools.get_spaces_in_project import (
     GetSpacesInProjectTool,
@@ -39,9 +37,10 @@ def get_all_readable_tools(lightdash_client: LightdashClient) -> List[BaseTool]:
         GetProjectsTool(lightdash_client=lightdash_client),
         GetSpacesInProjectTool(lightdash_client=lightdash_client),
         GetOrganizationMembersTool(lightdash_client=lightdash_client),
-        GetProjectAccessListTool(lightdash_client=lightdash_client),
+        GetProjectMembersTool(lightdash_client=lightdash_client),
         GetExploresTool(lightdash_client=lightdash_client),
         GetExploreTool(lightdash_client=lightdash_client),
+        # CompileQueryTool(lightdash_client=lightdash_client),
     ]
 
 
@@ -54,7 +53,7 @@ __all__ = [
     "GetProjectsTool",
     "GetSpacesInProjectTool",
     "GetOrganizationMembersTool",
-    "GetProjectAccessListTool",
+    "GetProjectMembersTool",
     "GetExploresTool",
     "GetExploreTool",
 ]

@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from enum import Enum
 from typing import Any, Dict, Optional
 
 import requests
+from pydantic import BaseModel, Field, SecretStr
 
 
 class RequestType(str, Enum):
@@ -27,21 +29,12 @@ class RequestType(str, Enum):
     DELETE = 'DELETE'
 
 
-class LightdashClient:
+class LightdashClient(BaseModel):
     """A client for the Lightdash API"""
 
-    def __init__(self, base_url: str, token: str, timeout: int = 30):
-        """
-        Initialize the Lightdash client.
-
-        Args:
-            base_url (str): Base URL for the Lightdash API
-            token (str): API authentication token
-            timeout (int, optional): Request timeout in seconds. Defaults to 30.
-        """
-        self.base_url = base_url.rstrip('/')
-        self.token = token
-        self.timeout = timeout
+    base_url: str = Field(alias="base_url", description="Base URL for the Lightdash API")
+    token: SecretStr = Field(alias="token", description="API authentication token")
+    timeout: int = Field(alias="timeout", description="Request timeout in seconds", default=30)
 
     def call(
         self,
@@ -62,10 +55,11 @@ class LightdashClient:
         Returns:
             Dict[str, Any]: Parsed JSON response
         """
-        url = f'{self.base_url}{path}'
+        base_url = self.base_url.rstrip("/")
+        url = f'{base_url}{path}'
 
         headers = {
-            'Authorization': f'ApiKey {self.token}',
+            'Authorization': f'ApiKey {self.token.get_secret_value()}',
             'Content-Type': 'application/json'
         }
 
@@ -81,4 +75,12 @@ class LightdashClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            raise RuntimeError(f"API call failed: {e}") from e
+            error_message = textwrap.dedent(f"""\
+              API call failed: {e}
+
+              URL: {url}
+              Headers: {headers}
+              Parameters: {parameters}
+              Data: {data}
+            """).strip()
+            raise RuntimeError(error_message) from e

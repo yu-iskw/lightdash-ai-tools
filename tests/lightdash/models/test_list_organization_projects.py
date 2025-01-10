@@ -15,8 +15,8 @@
 import unittest
 
 from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
-    ListOrganizationProjectsResponse,
-    OrganizationProject,
+    ListOrganizationProjectsV1Response,
+    ListOrganizationProjectsV1Results,
 )
 
 
@@ -35,7 +35,7 @@ class TestOrganizationProjectModel(unittest.TestCase):
         }
 
         # Create an instance of OrganizationProject
-        project = OrganizationProject(**project_data)
+        project = ListOrganizationProjectsV1Results(**project_data)
 
         # Assert the attributes
         self.assertEqual(project.warehouseType, "bigquery")
@@ -74,10 +74,10 @@ class TestListOrganizationProjectsResponseModel(unittest.TestCase):
         }
 
         # Create an instance of ListOrganizationProjectsResponse
-        response = ListOrganizationProjectsResponse(**response_data)
+        response = ListOrganizationProjectsV1Response(**response_data)
 
         # Assert the attributes
         self.assertEqual(response.status, "success")
         self.assertEqual(len(response.results), 2)
-        self.assertIsInstance(response.results[0], OrganizationProject)
-        self.assertIsInstance(response.results[1], OrganizationProject)
+        self.assertIsInstance(response.results[0], ListOrganizationProjectsV1Results)
+        self.assertIsInstance(response.results[1], ListOrganizationProjectsV1Results)

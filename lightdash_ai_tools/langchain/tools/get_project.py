@@ -22,14 +22,14 @@ from langchain_core.callbacks import (
 from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel, Field
 
-from lightdash_ai_tools.lightdash.api.get_project_v1 import GetProjectV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
+from lightdash_ai_tools.lightdash.controller.get_project import GetProjectController
 from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResults
 
 
 class GetProjectToolInput(BaseModel):
     """Input for the GetProject tool."""
-    project_uuid: str = Field(description="The UUID of the project to fetch.")
+    project_uuid: str = Field(description="The UUID of the project to fetch. That isn't the project name.")
 
 class GetProjectTool(BaseTool):
     """Get project details"""
@@ -44,8 +44,9 @@ class GetProjectTool(BaseTool):
 
     def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> GetProjectResults:
         try:
-            response = GetProjectV1(client=self.lightdash_client).call(project_uuid)
-            return response.results
+            controller = GetProjectController(client=self.lightdash_client)
+            results = controller(project_uuid)
+            return results
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving project details with project_uuid: {project_uuid}.

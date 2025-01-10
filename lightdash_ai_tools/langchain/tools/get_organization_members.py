@@ -9,11 +9,11 @@ from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel
 
 from lightdash_ai_tools.lightdash.client import LightdashClient
+from lightdash_ai_tools.lightdash.controller.get_organization_members import (
+    GetOrganizationMembersController,
+)
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
     OrganizationMemberModel,
-)
-from lightdash_ai_tools.lightdash.services.list_organization_members_v1 import (
-    ListOrganizationMembersV1Service,
 )
 
 
@@ -40,8 +40,9 @@ class GetOrganizationMembersTool(BaseTool):
             List of organization members
         """
         try:
-            service = ListOrganizationMembersV1Service(client=self.lightdash_client)
-            return service.get_all_members()
+            controller = GetOrganizationMembersController(client=self.lightdash_client)
+            results =  controller()
+            return results
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving organization members.

@@ -20,7 +20,7 @@ from lightdash_ai_tools.lightdash.api.list_organization_members_v1 import (
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
     ListOrganizationMembersV1Response,
-    OrganizationMemberModel,
+    ListOrganizationMembersV1Results,
 )
 
 
@@ -39,7 +39,7 @@ class ListOrganizationMembersV1Service:
     def get_all_members(
         self,
         page_size: Optional[int] = None
-    ) -> List[OrganizationMemberModel]:
+    ) -> List[ListOrganizationMembersV1Results]:
         """
         Get all members of the organization.
 
