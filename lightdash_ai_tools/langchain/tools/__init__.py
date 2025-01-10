@@ -16,7 +16,6 @@ from typing import List
 
 from langchain_core.tools import BaseTool
 
-from lightdash_ai_tools.langchain.tools.compile_query import CompileQueryTool
 from lightdash_ai_tools.langchain.tools.get_explore import GetExploreTool
 from lightdash_ai_tools.langchain.tools.get_explores import GetExploresTool
 from lightdash_ai_tools.langchain.tools.get_organization_members import (

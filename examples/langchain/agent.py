@@ -25,7 +25,6 @@ from langchain_google_vertexai import ChatVertexAI
 from langgraph.prebuilt import create_react_agent
 
 from lightdash_ai_tools.langchain.tools import get_all_readable_tools
-from lightdash_ai_tools.langchain.tools.compile_query import CompileQueryTool
 from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
