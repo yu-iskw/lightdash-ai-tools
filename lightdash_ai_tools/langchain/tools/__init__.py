@@ -18,6 +18,10 @@ from langchain_core.tools import BaseTool
 
 from lightdash_ai_tools.langchain.tools.get_explore import GetExploreTool
 from lightdash_ai_tools.langchain.tools.get_explores import GetExploresTool
+from lightdash_ai_tools.langchain.tools.get_group import GetGroupTool
+from lightdash_ai_tools.langchain.tools.get_groups_in_organization import (
+    GetGroupsInOrganizationTool,
+)
 from lightdash_ai_tools.langchain.tools.get_organization_members import (
     GetOrganizationMembersTool,
 )
@@ -40,7 +44,8 @@ def get_all_readable_tools(lightdash_client: LightdashClient) -> List[BaseTool]:
         GetProjectMembersTool(lightdash_client=lightdash_client),
         GetExploresTool(lightdash_client=lightdash_client),
         GetExploreTool(lightdash_client=lightdash_client),
-        # CompileQueryTool(lightdash_client=lightdash_client),
+        GetGroupsInOrganizationTool(lightdash_client=lightdash_client),
+        GetGroupTool(lightdash_client=lightdash_client),
     ]
 
 
@@ -56,4 +61,6 @@ __all__ = [
     "GetProjectMembersTool",
     "GetExploresTool",
     "GetExploreTool",
+    "GetGroupsInOrganizationTool",
+    "GetGroupTool",
 ]

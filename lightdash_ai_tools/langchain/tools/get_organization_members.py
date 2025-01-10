@@ -13,6 +13,7 @@ from lightdash_ai_tools.lightdash.controller.get_organization_members import (
     GetOrganizationMembersController,
 )
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
+    ListOrganizationMembersV1Results,
     OrganizationMemberModel,
 )
 
@@ -32,7 +33,7 @@ class GetOrganizationMembersTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[OrganizationMemberModel]:
+    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListOrganizationMembersV1Results]:
         """
         Run method for getting organization members.
 
@@ -40,9 +41,8 @@ class GetOrganizationMembersTool(BaseTool):
             List of organization members
         """
         try:
-            controller = GetOrganizationMembersController(client=self.lightdash_client)
-            results =  controller()
-            return results
+            controller = GetOrganizationMembersController(lightdash_client=self.lightdash_client)
+            return controller()
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving organization members.

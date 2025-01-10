@@ -50,9 +50,8 @@ class GetExploreTool(BaseTool):
       run_manager: Optional[CallbackManagerForToolRun] = None
       ) -> GetExploreV1Response:
         try:
-            controller = GetExploreController(client=self.lightdash_client)
-            results = controller(project_uuid, explore_id)
-            return results
+            controller = GetExploreController(lightdash_client=self.lightdash_client)
+            return controller(project_uuid=project_uuid, explore_id=explore_id)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explore with project_uuid: {project_uuid} and explore_id: {explore_id}.

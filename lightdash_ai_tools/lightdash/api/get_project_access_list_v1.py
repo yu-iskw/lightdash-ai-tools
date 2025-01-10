@@ -36,7 +36,7 @@ class GetProjectAccessListV1(BaseLightdashApiCaller[GetProjectAccessListV1Respon
             GetProjectAccessListV1Response: Details of the project's access list.
         """
         formatted_path = "/api/v1/projects/{project_uuid}/access".format(project_uuid=project_uuid)
-        response_data = self.client.call(self.request_type, formatted_path)
+        response_data = self.lightdash_client.call(self.request_type, formatted_path)
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> GetProjectAccessListV1Response:

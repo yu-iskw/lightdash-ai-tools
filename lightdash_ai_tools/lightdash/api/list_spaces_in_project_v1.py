@@ -33,7 +33,7 @@ class ListSpacesInProject(BaseLightdashApiCaller[ListSpacesInProjectV1Response])
             ListSpacesInProjectResponse: List of spaces in the project.
         """
         formatted_path = "/api/v1/projects/{projectUuid}/spaces".format(projectUuid=project_uuid)
-        response_data = self.client.call(self.request_type, formatted_path)
+        response_data = self.lightdash_client.call(self.request_type, formatted_path)
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> ListSpacesInProjectV1Response:

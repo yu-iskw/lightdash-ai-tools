@@ -98,7 +98,7 @@ class CompileQueryTool(BaseTool):
 
         # Call the Lightdash API to compile the query
         try:
-            response_data = CompileQueryV1(client=self.lightdash_client).call(projectUuid, exploreId, request_body)
+            response_data = CompileQueryV1(lightdash_client=self.lightdash_client).call(projectUuid, exploreId, request_body)
             return response_data.results
         except Exception as e:
             error_message = textwrap.dedent(f"""\

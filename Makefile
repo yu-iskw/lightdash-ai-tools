@@ -30,6 +30,7 @@ lint:
 .PHONY: format
 format:
 	trunk fmt -a
+	uv run ruff check --fix .
 
 # Run the unit tests.
 .PHONY: test

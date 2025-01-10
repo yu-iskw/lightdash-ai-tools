@@ -27,14 +27,14 @@ from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
 class ListOrganizationMembersV1Service:
     """Service for listing organization members."""
 
-    def __init__(self, client: LightdashClient):
+    def __init__(self, lightdash_client: LightdashClient):
         """
         Initialize the service.
 
         Args:
-            client: Lightdash client for making API calls
+            lightdash_client: Lightdash client for making API calls
         """
-        self._client = client
+        self.lightdash_client = lightdash_client
 
     def get_all_members(
         self,
@@ -48,7 +48,7 @@ class ListOrganizationMembersV1Service:
         """
         all_members = []
         page = 1
-        api_call = ListOrganizationMembersV1(client=self._client)
+        api_call = ListOrganizationMembersV1(lightdash_client=self.lightdash_client)
         while True:
             response: ListOrganizationMembersV1Response = api_call.call(
                 page=page,

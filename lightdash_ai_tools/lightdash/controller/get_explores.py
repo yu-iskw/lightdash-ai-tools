@@ -23,11 +23,11 @@ from lightdash_ai_tools.lightdash.models.get_explores_v1 import GetExploresV1Res
 class GetExploresController:
     """Controller for the GetExplores tool"""
 
-    def __init__(self, client: LightdashClient):
+    def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
-        self.client = client
+        self.lightdash_client = lightdash_client
 
     def __call__(self, project_uuid: str) -> List[GetExploresV1Results]:
         """Call the controller"""
-        response = GetExploresV1(client=self.client).call(project_uuid)
+        response = GetExploresV1(lightdash_client=self.lightdash_client).call(project_uuid)
         return response.results

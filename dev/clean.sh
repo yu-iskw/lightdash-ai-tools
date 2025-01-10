@@ -32,3 +32,5 @@ for cleaned_dir in "${cleaned_dirs[@]}"; do
 		rm -r "${MODULE_DIR:?}/${cleaned_dir}"
 	fi
 done
+
+find "${MODULE_DIR}" -type d -name "__pycache__" -exec rm -fr {} +

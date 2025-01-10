@@ -16,13 +16,13 @@ from typing import Any, Dict, Optional
 
 from lightdash_ai_tools.lightdash.api.base import BaseLightdashApiCaller
 from lightdash_ai_tools.lightdash.client import RequestType
-from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
-    ListOrganizationMembersV1Response,
+from lightdash_ai_tools.lightdash.models.list_groups_in_organization_v1 import (
+    ListGroupsInOrganizationV1Response,
 )
 
 
-class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1Response]):
-    """API call to list organization members."""
+class ListGroupsInOrganizationV1(BaseLightdashApiCaller[ListGroupsInOrganizationV1Response]):
+    """API call to list groups in the organization."""
 
     request_type = RequestType.GET
 
@@ -31,18 +31,16 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         search_query: Optional[str] = None,
-        project_uuid: Optional[str] = None,
-        include_groups: Optional[float] = None
+        include_members: Optional[float] = None
     ) -> Dict[str, Any]:
         """
-        List organization members.
+        List groups in the organization.
 
         Args:
             page: Page number for pagination
             page_size: Number of results per page
-            search_query: Search query to filter members
-            project_uuid: Filter users who can view this project
-            include_groups: Optional parameter for groups
+            search_query: Search query to filter groups
+            include_members: Optional parameter to include members in the group details
 
         Returns:
             Dict[str, Any]
@@ -54,14 +52,13 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
                 'page': page,
                 'pageSize': page_size,
                 'searchQuery': search_query,
-                'projectUuid': project_uuid,
-                'includeGroups': include_groups
+                'includeMembers': include_members
             }.items() if v is not None
         }
 
-        formatted_path = "/api/v1/org/users"
+        formatted_path = "/api/v1/org/groups"
         response_data = self.lightdash_client.call(self.request_type, formatted_path, parameters=parameters)
         return response_data
 
-    def _parse_response(self, response_data: Dict[str, Any]) -> ListOrganizationMembersV1Response:
-        return ListOrganizationMembersV1Response(**response_data)
+    def _parse_response(self, response_data: Dict[str, Any]) -> ListGroupsInOrganizationV1Response:
+        return ListGroupsInOrganizationV1Response(**response_data)

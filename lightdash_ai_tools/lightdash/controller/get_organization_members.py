@@ -26,10 +26,10 @@ from lightdash_ai_tools.lightdash.services.list_organization_members_v1 import (
 class GetOrganizationMembersController:
     """Controller for the GetOrganizationMembers tool"""
 
-    def __init__(self, client: LightdashClient):
+    def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
-        self.client = client
+        self.lightdash_client = lightdash_client
 
     def __call__(self) -> List[ListOrganizationMembersV1Results]:
         """Call the controller"""
-        return ListOrganizationMembersV1Service(client=self.client).get_all_members()
+        return ListOrganizationMembersV1Service(lightdash_client=self.lightdash_client).get_all_members()

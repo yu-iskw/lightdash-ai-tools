@@ -31,9 +31,8 @@ class GetExploresTool(BaseTool):
 
     def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[GetExploresV1Results]:
         try:
-            controller = GetExploresController(client=self.lightdash_client)
-            results = controller(project_uuid)
-            return results
+            controller = GetExploresController(lightdash_client=self.lightdash_client)
+            return controller(project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explores with project_uuid: {project_uuid}.

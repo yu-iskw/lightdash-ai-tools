@@ -44,7 +44,7 @@ class CompileQueryV1(BaseLightdashApiCaller[CompileQueryResponseV1]):
             Dict[str, Any]: Compiled query results
         """
         formatted_path = f"/api/v1/projects/{project_uuid}/explores/{explore_id}/compileQuery"
-        response_data = self.client.call(
+        response_data = self.lightdash_client.call(
           self.request_type, formatted_path, data=body.model_dump(exclude=["projectUuid", "exploreId"]))
         return response_data
 
