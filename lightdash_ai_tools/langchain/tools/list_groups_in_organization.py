@@ -43,6 +43,10 @@ class ListGroupsInOrganizationTool(BaseTool):
     name = "list_groups_in_organization"
     description = "Retrieve all groups in the current user's organization"
     args_schema: Type[BaseModel] = ListGroupsToolSchema
+    handle_tool_error: bool = True
+    handle_validation_error: bool = True
+
+    lightdash_client: LightdashClient
 
     def __init__(self, lightdash_client: LightdashClient):
         """

@@ -2,12 +2,6 @@ name: Test python
 
 on:
   pull_request:
-    paths:
-      - .github/workflows/test.yml
-      - pyproject.toml
-      - langchain_lightdash/**/*.py
-      - tests/**/*.py
-      - pylintrc
   push:
     branches:
       - main

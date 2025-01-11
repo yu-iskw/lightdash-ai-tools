@@ -40,6 +40,7 @@ class GetGroupTool(BaseTool):
     args_schema: Type[BaseModel] = GetGroupToolInput
     return_direct: bool = False
     handle_tool_error: bool = True
+    handle_validation_error: bool = True
 
     lightdash_client: LightdashClient
 
