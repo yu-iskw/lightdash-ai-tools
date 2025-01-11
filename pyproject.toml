@@ -7,7 +7,7 @@ exclude = ["tests", "dev", ".trunk", ".github", ".venv", "dist"]
 
 [project]
 name = "lightdash-ai-tools"
-version = "0.0.7"
+version = "0.1.0"
 authors = [{ name = "yu-iskw" }]
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -32,7 +32,7 @@ description = "AI tools for Lightdash"
 dependencies = ["pydantic>=2.9", "requests>=2.32"]
 
 [project.optional-dependencies]
-langchain = ["langchain-core>=0.3"]
+langchain = ["langchain-core>=0.3,<1.0"]
 
 dev = [
   "build>=1.2.2.post1",
