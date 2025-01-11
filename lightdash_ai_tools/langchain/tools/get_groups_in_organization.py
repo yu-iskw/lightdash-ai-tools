@@ -46,6 +46,8 @@ class GetGroupsInOrganizationTool(BaseTool):
     name: str = "get_groups_in_organization"
     description: str = "Retrieve all groups in the current user's organization"
     args_schema: Type[BaseModel] = GetGroupsInOrganizationToolInput
+    handle_tool_error: bool = True
+    handle_validation_error: bool = True
 
     lightdash_client: LightdashClient = Field(..., description="Lightdash API client")
 

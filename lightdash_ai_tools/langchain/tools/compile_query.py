@@ -55,7 +55,8 @@ class CompileQueryTool(BaseTool):
     )
     args_schema: type[BaseModel] = CompileQueryRequestV1
     return_direct: bool = False
-    handle_tool_error: bool = True  # Enable error handling
+    handle_tool_error: bool = True
+    handle_validation_error: bool = True
 
     lightdash_client: LightdashClient
 

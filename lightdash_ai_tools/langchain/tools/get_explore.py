@@ -40,6 +40,7 @@ class GetExploreTool(BaseTool):
     args_schema: Type[BaseModel] = GetExploreToolInput
     return_direct: bool = False
     handle_tool_error: bool = True  # Enable error handling
+    handle_validation_error: bool = True
 
     lightdash_client: LightdashClient
 
