@@ -15,7 +15,7 @@
 import argparse  # Importing argparse to fix the undefined variable error
 import os
 
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from lightdash_ai_tools.langchain.tools.get_project import GetProjectTool
 from lightdash_ai_tools.lightdash.client import LightdashClient
@@ -38,7 +38,7 @@ def main(project_uuid: str):
     tools = [get_project_tool]
 
     # Create the LLM
-    llm = ChatOpenAI(model="gpt-4o-mini")
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro")
 
     # Run the tool calls
     question = f"What is the project name of the project with uuid {project_uuid}?"
