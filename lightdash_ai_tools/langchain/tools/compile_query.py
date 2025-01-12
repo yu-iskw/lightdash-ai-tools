@@ -13,11 +13,14 @@
 # limitations under the License.
 
 import textwrap
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
-from langchain_core.callbacks import AsyncCallbackManagerForToolRun
+from langchain_core.callbacks import (
+    AsyncCallbackManagerForToolRun,
+    CallbackManagerForToolRun,
+)
 from langchain_core.tools import BaseTool, ToolException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.compile_query_v1 import CompileQueryV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
@@ -27,22 +30,17 @@ from lightdash_ai_tools.lightdash.models.compile_query_v1 import (
     SortField,
 )
 
-# class CompileQueryInput(BaseModel):
-#     """Input for the CompileQuery tool."""
-#     project_uuid: str = Field(..., description="UUID of the Lightdash project")
-#     explore_id: str = Field(..., description="ID of the explore to compile the query for")
-#     explore_name: str = Field(..., description="Name of the explore")
-#     dimensions: Optional[list[str]] = Field(default=None, description="List of dimension field IDs")
-#     metrics: Optional[list[str]] = Field(default=None, description="List of metric field IDs")
-#     filters: Optional[Dict[str, Any]] = Field(default=None, description="Query filters")
-#     sorts: Optional[list[Dict[str, Any]]] = Field(default=None, description="Sorting configuration")
-#     limit: Optional[int] = Field(default=None, description="Limit of results")
-#     timezone: Optional[str] = Field(default=None, description="Timezone for the query")
-#     table_calculations: Optional[list[Dict[str, Any]]] = Field(default=None, description="Table calculations")
-#     custom_dimensions: Optional[list[Dict[str, Any]]] = Field(default=None, description="Custom dimensions")
-#     additional_metrics: Optional[list[Dict[str, Any]]] = Field(default=None, description="Additional metrics")
-#     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
 
+class CompileQueryInput(BaseModel):
+    """Input for the CompileQuery tool."""
+    projectUuid: str = Field(..., description="UUID of the Lightdash project")
+    exploreId: str = Field(..., description="ID of the explore to compile the query for")
+    exploreName: str = Field(..., description="Name of the explore")
+    dimensions: Optional[List[str]] = Field(default_factory=list, description="List of dimension field IDs")
+    metrics: Optional[List[str]] = Field(default_factory=list, description="List of metric field IDs")
+    filters: Optional[Filters] = Field(default=None, description="Query filters")
+    sorts: Optional[List[SortField]] = Field(default=None, description="Sorting configuration")
+    limit: Optional[int] = Field(default=500, description="Limit of results")
 
 class CompileQueryTool(BaseTool):
     """Tool to compile a Lightdash query."""
@@ -53,7 +51,7 @@ class CompileQueryTool(BaseTool):
         "Requires project UUID, explore ID, and explore name. "
         "Optional parameters allow detailed query configuration."
     )
-    args_schema: type[BaseModel] = CompileQueryRequestV1
+    args_schema: type[BaseModel] = CompileQueryInput
     return_direct: bool = False
     handle_tool_error: bool = True
     handle_validation_error: bool = True
@@ -62,21 +60,16 @@ class CompileQueryTool(BaseTool):
 
     def _run(
         self,
-        projectUuid: Optional[str] = None,
-        exploreId: Optional[str] = None,
-        exploreName: Optional[str] = None,
-        dimensions: Optional[list[str]] = None,
-        metrics: Optional[list[str]] = None,
+        projectUuid: str,
+        exploreId: str,
+        exploreName: str,
+        dimensions: Optional[List[str]] = None,
+        metrics: Optional[List[str]] = None,
         filters: Optional[Filters] = None,
-        sorts: Optional[list[SortField]] = None,
-        limit: Optional[int] = None,
-        # timezone: Optional[str] = None,
-        # table_calculations: Optional[list[Dict[str, Any]]] = None,
-        # custom_dimensions: Optional[list[Dict[str, Any]]] = None,
-        # additional_metrics: Optional[list[Dict[str, Any]]] = None,
-        # metadata: Optional[Dict[str, Any]] = None,
-        # run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> str:
+        sorts: Optional[List[SortField]] = None,
+        limit: Optional[int] = 500,
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> Dict[str, Any]:
         """
         Compile a Lightdash query.
 
@@ -84,16 +77,13 @@ class CompileQueryTool(BaseTool):
         """
         # Construct the request body using the CompileQueryRequestV1 model
         request_body = CompileQueryRequestV1(
-            projectUuid=projectUuid ,
+            projectUuid=projectUuid,
             exploreId=exploreId,
             exploreName=exploreName,
             dimensions=dimensions or [],
             metrics=metrics or [],
-            # filters=Filters(
-            #     dimensions=filters["dimensions"] if filters and "dimensions" in filters else {},
-            #     metrics=filters["metrics"] if filters and "metrics" in filters else {},
-            # ),
-            # sorts=[SortField(fieldId=sort["fieldId"], descending=sort.get("descending", False)) for sort in (sorts or [])],
+            filters=filters,
+            sorts=sorts,
             limit=limit or 500,
         )
 
@@ -110,18 +100,31 @@ class CompileQueryTool(BaseTool):
 
     async def _arun(
         self,
-        project_uuid: str,
-        explore_id: str,
-        run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
+        projectUuid: str,
+        exploreId: str,
+        exploreName: str,
+        dimensions: Optional[List[str]] = None,
+        metrics: Optional[List[str]] = None,
+        filters: Optional[Filters] = None,
+        sorts: Optional[List[SortField]] = None,
+        limit: Optional[int] = 500,
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None
+    ) -> Dict[str, Any]:
         """Async version of the run method."""
         try:
-            if run_manager:
-                return await self._run(project_uuid, explore_id, run_manager=run_manager)
-            else:
-                return await self._run(project_uuid, explore_id)
+            return self._run(
+                projectUuid,
+                exploreId,
+                exploreName,
+                dimensions,
+                metrics,
+                filters,
+                sorts,
+                limit
+            )
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error compiling Lightdash query with project_uuid: {project_uuid} and explore_id: {explore_id}.
+              Error compiling Lightdash query with project_uuid: {projectUuid} and explore_id: {exploreId}.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e
