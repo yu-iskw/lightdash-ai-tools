@@ -15,6 +15,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Generic, TypeVar
 
+from pydantic import ValidationError
+
 from lightdash_ai_tools.lightdash.client import LightdashClient, RequestType
 
 T = TypeVar("T")
@@ -41,7 +43,10 @@ class BaseLightdashApiCaller(Generic[T], ABC):
             NotImplementedError: If not implemented by a subclass.
         """
         response_data = self._request(*args, **kwargs)
-        return self._parse_response(response_data)
+        try:
+            return self._parse_response(response_data)
+        except ValidationError as validation_error:
+            raise ValueError(f"Invalid response from Lightdash API: {validation_error.errors()}") from validation_error
 
     @abstractmethod
     def _request(

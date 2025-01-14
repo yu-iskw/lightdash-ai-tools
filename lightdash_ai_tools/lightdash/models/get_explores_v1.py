@@ -19,7 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class GetExploresV1Results(BaseModel):
     """Model representing an explore in Lightdash"""
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="ignore")
 
     name: str = Field(..., description="Name of the explore")
     label: Optional[str] = Field(default=None, description="Label of the explore")
