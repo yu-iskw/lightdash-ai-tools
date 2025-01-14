@@ -19,7 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 class GetProjectAccessListV1Results(BaseModel):
     """Model representing a member's access to a project."""
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="ignore")
 
     lastName: Optional[str] = Field(default=None, description="Last name of the user")
     firstName: Optional[str] = Field(default=None, description="First name of the user")
