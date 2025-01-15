@@ -41,6 +41,7 @@ class LightdashOpsWorkflowState(AgentState):
 
 def get_initial_state() -> LightdashOpsWorkflowState:
     """Get the initial state of the agent"""
+    print("============== initial state")
     return LightdashOpsWorkflowState(
         messages=[],
         user_input_history=[],
@@ -52,7 +53,11 @@ def get_initial_state() -> LightdashOpsWorkflowState:
 def update_state(state: LightdashOpsWorkflowState, user_input: str) -> LightdashOpsWorkflowState:
     """Update the state with the user input"""
     state["messages"].append(HumanMessage(content=user_input))
-    state["user_input_history"].append(user_input)
+    # remove empty AI messages
+    # state["messages"] = [
+    #   message for message in state["messages"]
+    #   if not (isinstance(message, AIMessage) and message.content == "")
+    # ]
     return state
 
 
@@ -205,14 +210,16 @@ def main():
         st.session_state.messages = []
     if "logs" not in st.session_state:
         st.session_state.logs = []
+    if "state" not in st.session_state:
+        st.session_state.state = None
 
     # Input fields for sensitive information in the sidebar
     with st.sidebar:
-        with st.container(key="config"):
+        with st.container(key="config", border=True, height=300):
             lightdash_url = st.text_input("Enter your Lightdash URL:", value=os.getenv("LIGHTDASH_URL", ""))
             lightdash_api_key = st.text_input("Enter your Lightdash API Key:", type="password", value=os.getenv("LIGHTDASH_API_KEY", ""))
             google_ai_token = st.text_input("Enter your Google AI Studio Token:", type="password", value=os.getenv("GOOGLE_API_KEY", ""))
-        with st.container(key="logs"):
+        with st.container(key="logs", border=True, height=600):
             if st.session_state.logs:
                 for log in st.session_state.logs:
                     st.write(log)
@@ -232,13 +239,31 @@ def main():
     )
 
     # Initialize LLM
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=google_ai_token)
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=google_ai_token)
 
     # Create workflow
-    state = get_initial_state()
-    graph_builder = LightdashOpsWorkflow(client, llm).get_graph_builder()
+    if st.session_state.state is None:
+        st.session_state.state = get_initial_state()
     memory = MemorySaver()
-    workflow = graph_builder.compile(checkpointer=memory)
+    agent = create_react_agent(
+      llm,
+      get_all_readable_tools(lightdash_client=client),
+      checkpointer=memory,
+      state_modifier=textwrap.dedent("""\
+        You are a helpful assistant that can use tools to get the data from Lightdash.
+        You will use the tools to get the data and return the response to the user.
+
+        The response should be in the markdown format.
+
+        There are some common pitfalls to be aware of when using the tools:
+
+        ## Common Pitfalls
+        1. Always use the project UUID instead of the project name when retrieving data.
+            It may be helpful to fetch all projects to determine the project UUID from the project name.
+        2. Always use the user UUID instead of the user name when retrieving data.
+            It may be helpful to fetch all users to determine the user UUID from the user name.
+        """.strip()),
+      )
 
     st.header("Chat with LLM")
 
@@ -253,7 +278,11 @@ def main():
     # Generate assistant response
     if user_input:
         # Update state
-        state = update_state(state, user_input=user_input)
+        print("============: state (before)")
+        print(st.session_state.state)
+        update_state(st.session_state.state, user_input=user_input)
+        print("============: state (after)")
+        print(st.session_state.state)
         # Append user message to session state
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
@@ -267,21 +296,27 @@ def main():
                     "recursion_limit": 1000,
                 }
                 # Stream workflow events
-                events = workflow.stream(state, config, stream_mode="values")
-                response = ""
+                events = agent.stream(st.session_state.state, config, stream_mode="values")
+                messages = []
                 for event in events:
                     # Log workflow messages
                     last_message = event["messages"][-1]
                     st.session_state.logs.append(last_message)
-                # Retrieve the formatted response
-                snapshot_state = workflow.get_state(config=config)
-                response = snapshot_state.values.get("raw_response", "")
+                    messages.append(last_message)
+                response = messages[-1].content if len(messages) > 0 else ""
+                # # Retrieve the formatted response
+                # snapshot_state = agent.get_state(config=config)
+                # response = snapshot_state.values.get("raw_response", "")
                 # Append assistant response to session state
                 st.session_state.messages.append({"role": "assistant", "content": response})
                 # Display assistant response
                 with st.chat_message("assistant"):
                     st.markdown(response)
                 st.success("Response received:")
+                # Get the latest state
+                st.session_state.state = agent.get_state(config=config).values
+                print("============: snapshot state")
+                print(st.session_state.state)
             except Exception as e:
                 st.error(f"Error: {e}")
 
