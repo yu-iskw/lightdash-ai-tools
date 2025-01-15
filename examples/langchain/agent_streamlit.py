@@ -23,17 +23,22 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import create_react_agent
-from typing_extensions import TypedDict
+from langgraph.prebuilt.chat_agent_executor import AgentState
 
 from lightdash_ai_tools.langchain.tools import get_all_readable_tools
 from lightdash_ai_tools.lightdash.client import LightdashClient
 
+# from typing_extensions import TypedDict
 
-class LightdashOpsWorkflowState(TypedDict):
+
+
+
+class LightdashOpsWorkflowState(AgentState):
     """The state of the agent"""
-    messages: List[AnyMessage]
+    # messages: List[AnyMessage]
     user_input_history: List[str]
     need_refine: bool
+    raw_response: str
     formatted_response: str
 
 
@@ -45,6 +50,7 @@ def get_initial_state(initial_user_input: str) -> LightdashOpsWorkflowState:
         ],
       "user_input_history": [initial_user_input],
       "need_refine": False,
+      "raw_response": "",  # Added raw_response to match the TypedDict
       "formatted_response": "",
       }
 
@@ -54,9 +60,18 @@ class ReviewOutput(BaseModel):
     solution: str = Field(..., description="The solution to the user's question")
     need_refine: bool = Field(..., description="Whether the solution needs to be refined")
 
+
 class FormatResponseOutput(BaseModel):
     """The output of the format response"""
     formatted_response: str = Field(..., description="The formatted response to the user's question")
+
+
+def get_last_ai_message(messages: List[AnyMessage]) -> AIMessage:
+    """Get the last AI message from the messages"""
+    for message in reversed(messages):
+        if isinstance(message, AIMessage):
+            return message
+    raise ValueError("No AI message found in the messages")
 
 
 class LightdashOpsWorkflow:
@@ -93,7 +108,19 @@ class LightdashOpsWorkflow:
 
     def tool_agent_node(self):
         """Create the tool agent node"""
-        return create_react_agent(self.llm, self.tools)
+        system_prompt = textwrap.dedent("""\
+            You are a helpful assistant that can use tools to get the data from Lightdash.
+            You will use the tools to get the data and return the response to the user.
+
+            If you reach the final output, you will set the raw_response to the response.
+            Ensure that all required keys are present in the state schema, including 'remaining_steps'.
+            """.strip())
+        return create_react_agent(
+          self.llm,
+          self.tools,
+          state_modifier=system_prompt,
+          state_schema=LightdashOpsWorkflowState,
+        )
 
     def review_node(self, state: LightdashOpsWorkflowState) -> LightdashOpsWorkflowState:
         """Create the review node"""
@@ -120,15 +147,17 @@ class LightdashOpsWorkflow:
         response = self.llm.with_structured_output(ReviewOutput).invoke(messages)
         if isinstance(response, ReviewOutput):
             # Update the state
-            state["messages"].append(AIMessage(content=response.solution))
             state["need_refine"] = response.need_refine
+            # Append the solution to the messages if the need_refine is True
+            if response.need_refine:
+              state["messages"].append(AIMessage(content=response.solution))
         else:
-            st.error("Unexpected result type from LLM.")
+            raise ValueError("Unexpected result type from LLM.")
         return state
 
     def format_response_node(self, state: LightdashOpsWorkflowState) -> LightdashOpsWorkflowState:
         """Format the response node"""
-        if not state["messages"]:  # Ensure there is a message to process
+        if not state["raw_response"]:  # Ensure there is a message to process
             raise ValueError("No messages to format.")
         messages = [
           SystemMessage(content=textwrap.dedent("""\
@@ -136,7 +165,7 @@ class LightdashOpsWorkflow:
             Your goal is to ensure that the response is well-structured, concise, and directly addresses the user's question.
             For instance, it might be good to create a table or a list to make the response more readable.
           """.strip())),
-          state["messages"][-1]
+          state["raw_response"],
         ]
         print(messages)
         response = self.llm.with_structured_output(FormatResponseOutput).invoke(messages)
@@ -159,57 +188,66 @@ def main():
 
     st.title("Lightdash Agent Interface")
 
+    # Create tabs for chat and logs
+    chat_tab, logs_tab = st.tabs(["Chat with LLM", "Workflow Logs"])
+
     # Input fields for sensitive information in the sidebar
     with st.sidebar:
         lightdash_url = st.text_input("Enter your Lightdash URL:", value=os.getenv("LIGHTDASH_URL", ""))
         lightdash_api_key = st.text_input("Enter your Lightdash API Key:", type="password", value=os.getenv("LIGHTDASH_API_KEY", ""))
         google_ai_token = st.text_input("Enter your Google AI Studio Token:", type="password", value=os.getenv("GOOGLE_API_KEY", ""))  # New field for Google AI token
 
-    # Use st.chat_input for the question input
-    question = st.chat_input("Enter your question:")
+    # Use st.chat_input for the question input in the chat tab
+    with chat_tab, logs_tab:
+        question = chat_tab.chat_input("Enter your question:")
 
-    # Create Lightdash client
-    if not lightdash_url or not lightdash_api_key or not google_ai_token:  # Check for Google AI token
-        st.error("Please enter your LIGHTDASH_URL, LIGHTDASH_API_KEY, and GOOGLE_AI_TOKEN.")
-        return
+        # Create Lightdash client
+        if not lightdash_url or not lightdash_api_key or not google_ai_token:  # Check for Google AI token
+            st.error("Please enter your LIGHTDASH_URL, LIGHTDASH_API_KEY, and GOOGLE_AI_TOKEN.")
+            return
 
-    client = LightdashClient(
-        base_url=lightdash_url,
-        token=lightdash_api_key,
-    )
+        client = LightdashClient(
+            base_url=lightdash_url,
+            token=lightdash_api_key,
+        )
 
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=google_ai_token)
-    graph_builder = LightdashOpsWorkflow(client, llm).get_graph_builder()
-    memory = MemorySaver()
-    workflow = graph_builder.compile(checkpointer=memory)
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=google_ai_token)
+        graph_builder = LightdashOpsWorkflow(client, llm).get_graph_builder()
+        memory = MemorySaver()
+        workflow = graph_builder.compile(checkpointer=memory)
 
-    if not question:
-        st.warning("Please enter a question to proceed.")
-    else:
-        init_state = get_initial_state(initial_user_input=question)
-        config = {
-          "configurable": {"thread_id": "1"},
-          "recursion_limit": 1000,
-          }
-        while True:  # Loop to continue the chat
-          with st.spinner("Generating response..."):
-              events = workflow.stream(init_state, config, stream_mode="values")
-              response = ""
-              for s in events:
-                  pass
-              # Get the formatted response from the snapshot state
-              snapsnot_state = workflow.get_state(config=config)
-              response = snapsnot_state["formatted_response"]
-              st.success("Response received:")
-              st.chat_message("assistant").markdown(response)
+        if not question:
+            chat_tab.warning("Please enter a question to proceed.")
+        else:
+            init_state = get_initial_state(initial_user_input=question)
+            config = {
+              "configurable": {"thread_id": "1"},
+              "recursion_limit": 1000,
+              }
+            while True:  # Loop to continue the chat
+              with st.spinner("Generating response..."):
+                  try:
+                    events = workflow.stream(init_state, config, stream_mode="values")
+                    response = ""
+                    for s in events:
+                      # Leave the logs to the workflow log tab
+                      last_message = s["messages"][-1]
+                      logs_tab.write(last_message)
+                    # Get the formatted response from the snapshot state
+                    snapsnot_state = workflow.get_state(config=config)
+                    print(snapsnot_state)
+                    response = snapsnot_state.values.get("formatted_response", "")
+                    chat_tab.success("Response received:")
+                    chat_tab.chat_message("assistant").markdown(response)
+                  except Exception as e:
+                    chat_tab.error(f"Error: {e}")
 
-              # Human-in-the-loop: Ask for user confirmation on the response
-              next_question = st.chat_input("Enter your next question:")  # Prompt for next input
-              if next_question:
-                  question = next_question
-              else:  # Exit loop if no new question is provided
-                  st.warning("Please enter a question to proceed.")
-                  break
+                  # Human-in-the-loop: Ask for user confirmation on the response
+                  if next_question := chat_tab.chat_input("Enter your next question:"):  # Prompt for next input
+                      question = next_question
+                  else:  # Exit loop if no new question is provided
+                      chat_tab.warning("Please enter a question to proceed.")
+                      break
 
 
 if __name__ == "__main__":
