@@ -116,12 +116,8 @@ def main():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Always show chat input at the bottom
-    # trunk-ignore(sourcery/use-named-expression)
-    user_input = st.chat_input("Enter your question:", key="question")
-
     # Generate assistant response
-    if user_input:
+    if user_input := st.chat_input("Enter your question:", key="question"):
         # Update state
         update_state(st.session_state.state, user_input=user_input)
         # Append user message to session state
