@@ -13,15 +13,12 @@
 # limitations under the License.
 import os
 import textwrap
-from typing import List
 
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
-from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.messages import HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import create_react_agent
 from langgraph.prebuilt.chat_agent_executor import AgentState
 
@@ -30,21 +27,22 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 
 # from typing_extensions import TypedDict
 
-
-
-
 def get_initial_state() -> AgentState:
     """Get the initial state of the agent"""
     return AgentState(
         messages=[],
+        is_last_step=False,
+        remaining_steps=0,
+        structured_response=None,
     )
 
 def update_state(state: AgentState, user_input: str) -> AgentState:
     """Update the state with the user input"""
-    state["messages"].append(HumanMessage(content=user_input.strip()))
+    state.messages.append(HumanMessage(content=user_input.strip()))
     return state
 
 
+# trunk-ignore(sourcery/low-code-quality)
 def main():
     # Load environment variables
     load_dotenv()
@@ -57,7 +55,7 @@ def main():
     if "logs" not in st.session_state:
         st.session_state.logs = []
     if "state" not in st.session_state:
-        st.session_state.state = None
+        st.session_state.state = get_initial_state()
 
     # Input fields for sensitive information in the sidebar
     with st.sidebar:
@@ -71,7 +69,6 @@ def main():
                     st.write(log)
             else:
                 st.write("No logs available.")
-
 
     # Validate input fields
     if not lightdash_url or not lightdash_api_key or not google_ai_token:
@@ -91,8 +88,6 @@ def main():
       temperature=0.1)
 
     # Create workflow
-    if st.session_state.state is None:
-        st.session_state.state = get_initial_state()
     memory = MemorySaver()
     agent = create_react_agent(
       llm,
@@ -122,6 +117,7 @@ def main():
             st.markdown(message["content"])
 
     # Always show chat input at the bottom
+    # trunk-ignore(sourcery/use-named-expression)
     user_input = st.chat_input("Enter your question:", key="question")
 
     # Generate assistant response
@@ -157,9 +153,6 @@ def main():
                         I'm sorry, but I couldn't retrieve the data you requested.
                         Please refine your question or provide more details.
                         """.strip())
-                # # Retrieve the formatted response
-                # snapshot_state = agent.get_state(config=config)
-                # response = snapshot_state.values.get("raw_response", "")
                 # Append assistant response to session state
                 st.session_state.messages.append({"role": "assistant", "content": response})
                 # Display assistant response
