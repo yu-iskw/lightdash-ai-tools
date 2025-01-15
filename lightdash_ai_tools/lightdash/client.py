@@ -79,7 +79,6 @@ class LightdashClient(BaseModel):
               API call failed: {e}
 
               URL: {url}
-              Headers: {headers}
               Parameters: {parameters}
               Data: {data}
             """).strip()
