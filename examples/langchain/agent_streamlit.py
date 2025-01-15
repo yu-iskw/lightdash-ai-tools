@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import create_react_agent
 from typing_extensions import TypedDict
@@ -31,13 +32,21 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 class LightdashOpsWorkflowState(TypedDict):
     """The state of the agent"""
     messages: List[AnyMessage]
-    user_inputs: List[str]
+    user_input_history: List[str]
     need_refine: bool
+    formatted_response: str
 
 
 def get_initial_state(initial_user_input: str) -> LightdashOpsWorkflowState:
     """Get the initial state of the agent"""
-    return {"messages": [], "user_inputs": [initial_user_input], "need_refine": False}
+    return {
+      "messages": [
+        HumanMessage(content=initial_user_input),
+        ],
+      "user_input_history": [initial_user_input],
+      "need_refine": False,
+      "formatted_response": "",
+      }
 
 
 class ReviewOutput(BaseModel):
@@ -121,7 +130,6 @@ class LightdashOpsWorkflow:
         """Format the response node"""
         if not state["messages"]:  # Ensure there is a message to process
             raise ValueError("No messages to format.")
-        print(state["messages"])
         messages = [
           SystemMessage(content=textwrap.dedent("""\
             You are a skilled response formatter tasked with enhancing the clarity and presentation of the user's answer.
@@ -130,10 +138,11 @@ class LightdashOpsWorkflow:
           """.strip())),
           state["messages"][-1]
         ]
+        print(messages)
         response = self.llm.with_structured_output(FormatResponseOutput).invoke(messages)
         if isinstance(response, FormatResponseOutput):
             # Update the state
-            state["messages"].append(AIMessage(content=response.formatted_response))
+            state["formatted_response"] = response.formatted_response
         else:
             raise ValueError("Unexpected result type from LLM.")
         return state
@@ -170,36 +179,37 @@ def main():
     )
 
     llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=google_ai_token)
+    graph_builder = LightdashOpsWorkflow(client, llm).get_graph_builder()
+    memory = MemorySaver()
+    workflow = graph_builder.compile(checkpointer=memory)
 
-    if question:  # Check if question is provided
-        graph_builder = LightdashOpsWorkflow(client, llm).get_graph_builder()
-        workflow = graph_builder.compile()
-        if workflow:
-            while True:  # Loop to continue the chat
-                with st.spinner("Generating response..."):
-                    messages = [HumanMessage(content=question)]
-                    config = {"recursion_limit": 100}
-                    response = ""
-                    events = workflow.stream({"messages": messages}, config, stream_mode="values")
-                    for s in events:
-                        message = s["messages"][-1]
-                        response += str(message) + "\n" if isinstance(message, tuple) else message.content + "\n"
-                    st.success("Response received:")
-                    st.text_area("Answer", value=response, height=300)
-
-                    # Human-in-the-loop: Ask for user confirmation on the response
-                    if st.button("Confirm Response"):
-                        st.success("Response confirmed.")
-                        break  # Exit the loop if confirmed
-                    else:
-                        next_question = st.chat_input("Enter your next question:")  # Prompt for next input
-                        if next_question:
-                            question = next_question
-                        else:  # Exit loop if no new question is provided
-                            st.warning("Please enter a question to proceed.")
-                            break
-    else:
+    if not question:
         st.warning("Please enter a question to proceed.")
+    else:
+        init_state = get_initial_state(initial_user_input=question)
+        config = {
+          "configurable": {"thread_id": "1"},
+          "recursion_limit": 1000,
+          }
+        while True:  # Loop to continue the chat
+          with st.spinner("Generating response..."):
+              events = workflow.stream(init_state, config, stream_mode="values")
+              response = ""
+              for s in events:
+                  pass
+              # Get the formatted response from the snapshot state
+              snapsnot_state = workflow.get_state(config=config)
+              response = snapsnot_state["formatted_response"]
+              st.success("Response received:")
+              st.chat_message("assistant").markdown(response)
+
+              # Human-in-the-loop: Ask for user confirmation on the response
+              next_question = st.chat_input("Enter your next question:")  # Prompt for next input
+              if next_question:
+                  question = next_question
+              else:  # Exit loop if no new question is provided
+                  st.warning("Please enter a question to proceed.")
+                  break
 
 
 if __name__ == "__main__":
