@@ -34,20 +34,18 @@ class LightdashOpsWorkflowState(AgentState):
     """The state of the agent"""
     # messages: List[AnyMessage]
     user_input_history: List[str]
-    need_refine: bool
+    call_tools: bool
     raw_response: str
     formatted_response: str
 
 
-def get_initial_state(initial_user_input: str) -> LightdashOpsWorkflowState:
+def get_initial_state() -> LightdashOpsWorkflowState:
     """Get the initial state of the agent"""
     return LightdashOpsWorkflowState(
-        messages=[
-            HumanMessage(content=initial_user_input),
-        ],
-        user_input_history=[initial_user_input],
+        messages=[],
+        user_input_history=[],
         need_refine=False,
-        raw_response="",  # Added raw_response to match the TypedDict
+        raw_response="",
         formatted_response="",
     )
 
@@ -60,9 +58,7 @@ def update_state(state: LightdashOpsWorkflowState, user_input: str) -> Lightdash
 
 class ReviewOutput(BaseModel):
     """The output of the review response"""
-    solution: str = Field(..., description="The solution to the user's question")
-    need_refine: bool = Field(..., description="Whether the solution needs to be refined")
-
+    solution: str = Field(..., description="The solution to resolve issues responded by the tools")
     answer: str = Field(..., description="The answer to the user's question")
     question: str = Field(..., description="The question to the user's question to clarify")
 
@@ -93,7 +89,7 @@ class LightdashOpsWorkflow:
         tool_agent_node = self.tool_agent_node()
         graph_builder.add_node("tool_agent", tool_agent_node)
         graph_builder.add_node("review_agent", self.review_node)
-        graph_builder.add_node("format_response_agent", self.format_response_node)
+        # graph_builder.add_node("format_response_agent", self.format_response_node)
         # Add the edges to the graph
         graph_builder.set_entry_point("tool_agent")
         graph_builder.add_edge("tool_agent", "review_agent")
@@ -102,15 +98,15 @@ class LightdashOpsWorkflow:
             self.should_continue,
             {
                 True: "tool_agent",
-                False: "format_response_agent",
+                False: END,
             }
         )
-        graph_builder.add_edge("format_response_agent", END)
+        # graph_builder.add_edge("format_response_agent", END)
         return graph_builder
 
     def should_continue(self, state: LightdashOpsWorkflowState) -> bool:
         """Check if the agent should continue"""
-        return state["need_refine"]
+        return state["call_tools"]
 
     def tool_agent_node(self):
         """Create the tool agent node"""
@@ -133,36 +129,39 @@ class LightdashOpsWorkflow:
         # Call the LLM with the messages
         messages = [
             SystemMessage(content=textwrap.dedent("""\
-                You are a knowledgeable reviewer tasked with evaluating whether the current response adequately addresses the user's question.
-                Utilize the available tools to gather necessary data and formulate a response.
+                You are an expert reviewer tasked with evaluating the effectiveness of the current response to the user's inquiry.
+                Utilize the available tools to gather relevant data and formulate a thorough response.
 
-                1. If the response sufficiently answers the question, set `need_refine` to `False` and populate the `answer` field with the response.
-                2. If the response is insufficient, set `need_refine` to `True`.
-                3. If clarification is needed, assign the clarification question to the `question` field.
+                Your evaluation should follow these guidelines:
 
-                Additionally, if the response is adequate, ensure `need_refine` is set to `False`.
-                If it is not sufficient, set `need_refine` to `True`.
-                If the response lacks the necessary tools to retrieve data, also set `need_refine` to `False`, as data retrieval is not feasible without the appropriate tools.
+                1. If the response sufficiently answers the user's question, populate the `answer` field with the response.
+                2. If the response is insufficient, indicate further action is needed.
+                3. If additional clarification is required, assign the clarification question to the `question` field.
 
-                If the response is inadequate, consider the following common pitfalls to avoid:
+                Ensure that if the response is satisfactory, `call_tools` is set to `False`. Conversely, if it is inadequate, set `call_tools` to `True`.
+                If the response does not have the necessary tools for data retrieval, also set `call_tools` to `False`, as data cannot be retrieved without the appropriate tools.
+
+                If the response is found wanting, please be mindful of the following common pitfalls:
 
                 ## Common Pitfalls
-                1. Ensure you are passing the project UUID instead of the project name to retrieve data.
-                   It may be beneficial to fetch all projects to identify the project UUID from the project name.
-                2. Ensure you are passing the user UUID instead of the user name to retrieve data.
-                   It may be beneficial to fetch all users to identify the user UUID from the user name.
+                1. Always use the project UUID instead of the project name when retrieving data.
+                   It may be helpful to fetch all projects to determine the project UUID from the project name.
+                2. Always use the user UUID instead of the user name when retrieving data.
+                   It may be helpful to fetch all users to determine the user UUID from the user name.
             """.strip())),
             get_last_ai_message(state["messages"]),
             HumanMessage(content=state["user_input_history"][-1]),
         ]
         response = self.llm.with_structured_output(ReviewOutput).invoke(messages)
+        print("============: review_node")
+        print(response)
         if not isinstance(response, ReviewOutput):
             raise ValueError(f"Unexpected result type from LLM: {response}")
 
         # Update the state
-        state["need_refine"] = response.need_refine
-        # Append the solution to the messages if the need_refine is True
-        if response.need_refine:
+        state["call_tools"] = True if len(response.solution) > 0 else False
+        # Append the solution to the messages if the call_tools is True
+        if state["call_tools"]:
             state["messages"].append(AIMessage(content=response.solution))
         else:
             state["raw_response"] = response.answer if response.answer else response.question
@@ -196,78 +195,95 @@ def create_agent(lightdash_client: LightdashClient, llm: ChatGoogleGenerativeAI)
 
 
 def main():
-    # load env
+    # Load environment variables
     load_dotenv()
 
     st.title("Lightdash Agent Interface")
 
-    # Create tabs for chat and logs
-    chat_tab, logs_tab = st.tabs(["Chat with LLM", "Workflow Logs"])
+    # Initialize session state for messages
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "logs" not in st.session_state:
+        st.session_state.logs = []
 
     # Input fields for sensitive information in the sidebar
     with st.sidebar:
-        lightdash_url = st.text_input("Enter your Lightdash URL:", value=os.getenv("LIGHTDASH_URL", ""))
-        lightdash_api_key = st.text_input("Enter your Lightdash API Key:", type="password", value=os.getenv("LIGHTDASH_API_KEY", ""))
-        google_ai_token = st.text_input("Enter your Google AI Studio Token:", type="password", value=os.getenv("GOOGLE_API_KEY", ""))  # New field for Google AI token
+        with st.container(key="config"):
+            lightdash_url = st.text_input("Enter your Lightdash URL:", value=os.getenv("LIGHTDASH_URL", ""))
+            lightdash_api_key = st.text_input("Enter your Lightdash API Key:", type="password", value=os.getenv("LIGHTDASH_API_KEY", ""))
+            google_ai_token = st.text_input("Enter your Google AI Studio Token:", type="password", value=os.getenv("GOOGLE_API_KEY", ""))
+        with st.container(key="logs"):
+            if st.session_state.logs:
+                for log in st.session_state.logs:
+                    st.write(log)
+            else:
+                st.write("No logs available.")
 
-    # Use st.chat_input for the question input in the chat tab
-    with chat_tab, logs_tab:
-        question = chat_tab.chat_input("Enter your question:")
 
-        # Create Lightdash client
-        if not lightdash_url or not lightdash_api_key or not google_ai_token:  # Check for Google AI token
-            st.error("Please enter your LIGHTDASH_URL, LIGHTDASH_API_KEY, and GOOGLE_AI_TOKEN.")
-            return
+    # Validate input fields
+    if not lightdash_url or not lightdash_api_key or not google_ai_token:
+        st.sidebar.error("Please enter your LIGHTDASH_URL, LIGHTDASH_API_KEY, and GOOGLE_AI_TOKEN.")
+        return
 
-        client = LightdashClient(
-            base_url=lightdash_url,
-            token=lightdash_api_key,
-        )
+    # Initialize Lightdash client
+    client = LightdashClient(
+        base_url=lightdash_url,
+        token=lightdash_api_key,
+    )
 
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=google_ai_token)
-        graph_builder = LightdashOpsWorkflow(client, llm).get_graph_builder()
-        memory = MemorySaver()
-        workflow = graph_builder.compile(checkpointer=memory)
+    # Initialize LLM
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=google_ai_token)
 
-        if not question:
-            chat_tab.warning("Please enter a question to proceed.")
-        else:
-            # Chat
-            user = chat_tab.chat_message("user")
-            chat_bot = chat_tab.chat_message("assistant")
-            #  Initialize the state
-            init_state = get_initial_state(initial_user_input=question)
-            config = {
-                "configurable": {"thread_id": "1"},
-                "recursion_limit": 1000,
-            }
-            while True:  # Loop to continue the chat
-                user.write(question)
-                with st.spinner("Generating response..."):
-                    try:
-                        events = workflow.stream(init_state, config, stream_mode="values")
-                        response = ""
-                        for s in events:
-                            # Leave the logs to the workflow log tab
-                            last_message = s["messages"][-1]
-                            logs_tab.write(last_message)
-                        # Get the formatted response from the snapshot state
-                        snapshot_state = workflow.get_state(config=config)
-                        response = snapshot_state.values.get("formatted_response", "")
-                        chat_tab.success("Response received:")
-                        chat_bot.write(response)
-                    except Exception as e:
-                        chat_tab.error(f"Error: {e}")
+    # Create workflow
+    state = get_initial_state()
+    graph_builder = LightdashOpsWorkflow(client, llm).get_graph_builder()
+    memory = MemorySaver()
+    workflow = graph_builder.compile(checkpointer=memory)
 
-                    # Human-in-the-loop: Ask for user confirmation on the response
-                    question = chat_tab.chat_input("Enter your next question:")  # Prompt for next input
-                    if question:
-                        updated_state = update_state(init_state, question)
-                        workflow.update_state(config, updated_state)
-                    else:  # Exit loop if no new question is provided
-                        chat_tab.warning("Please enter a question to proceed.")
-                        break
+    st.header("Chat with LLM")
 
+    # Display chat messages from history
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Always show chat input at the bottom
+    user_input = st.chat_input("Enter your question:", key="question")
+
+    # Generate assistant response
+    if user_input:
+        # Update state
+        state = update_state(state, user_input=user_input)
+        # Append user message to session state
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+        # Generate response
+        with st.spinner("Generating response..."):
+            try:
+                # Initialize workflow state
+                config = {
+                    "configurable": {"thread_id": "1"},
+                    "recursion_limit": 1000,
+                }
+                # Stream workflow events
+                events = workflow.stream(state, config, stream_mode="values")
+                response = ""
+                for event in events:
+                    # Log workflow messages
+                    last_message = event["messages"][-1]
+                    st.session_state.logs.append(last_message)
+                # Retrieve the formatted response
+                snapshot_state = workflow.get_state(config=config)
+                response = snapshot_state.values.get("raw_response", "")
+                # Append assistant response to session state
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                # Display assistant response
+                with st.chat_message("assistant"):
+                    st.markdown(response)
+                st.success("Response received:")
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
