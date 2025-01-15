@@ -30,173 +30,19 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 
 # from typing_extensions import TypedDict
 
-class LightdashOpsWorkflowState(AgentState):
-    """The state of the agent"""
-    # messages: List[AnyMessage]
-    user_input_history: List[str]
-    call_tools: bool
-    raw_response: str
-    formatted_response: str
 
 
-def get_initial_state() -> LightdashOpsWorkflowState:
+
+def get_initial_state() -> AgentState:
     """Get the initial state of the agent"""
-    print("============== initial state")
-    return LightdashOpsWorkflowState(
+    return AgentState(
         messages=[],
-        user_input_history=[],
-        need_refine=False,
-        raw_response="",
-        formatted_response="",
     )
 
-def update_state(state: LightdashOpsWorkflowState, user_input: str) -> LightdashOpsWorkflowState:
+def update_state(state: AgentState, user_input: str) -> AgentState:
     """Update the state with the user input"""
-    state["messages"].append(HumanMessage(content=user_input))
-    # remove empty AI messages
-    # state["messages"] = [
-    #   message for message in state["messages"]
-    #   if not (isinstance(message, AIMessage) and message.content == "")
-    # ]
+    state["messages"].append(HumanMessage(content=user_input.strip()))
     return state
-
-
-class ReviewOutput(BaseModel):
-    """The output of the review response"""
-    solution: str = Field(..., description="The solution to resolve issues responded by the tools")
-    answer: str = Field(..., description="The answer to the user's question")
-    question: str = Field(..., description="The question to the user's question to clarify")
-
-
-class FormatResponseOutput(BaseModel):
-    """The output of the format response"""
-    formatted_response: str = Field(..., description="The formatted response to the user's question")
-
-
-def get_last_ai_message(messages: List[AnyMessage]) -> AIMessage:
-    """Get the last AI message from the messages"""
-    for message in reversed(messages):
-        if isinstance(message, AIMessage):
-            return message
-    raise ValueError("No AI message found in the messages")
-
-
-class LightdashOpsWorkflow:
-    def __init__(self, lightdash_client: LightdashClient, llm: ChatGoogleGenerativeAI):
-        self.lightdash_client = lightdash_client
-        self.llm = llm  # Store the LLM instance for later use
-        self.tools = get_all_readable_tools(lightdash_client=lightdash_client)
-
-    def get_graph_builder(self) -> StateGraph:
-        """Get the graph builder for the agent"""
-        graph_builder = StateGraph(LightdashOpsWorkflowState)
-        # Add the nodes to the graph
-        tool_agent_node = self.tool_agent_node()
-        graph_builder.add_node("tool_agent", tool_agent_node)
-        graph_builder.add_node("review_agent", self.review_node)
-        # graph_builder.add_node("format_response_agent", self.format_response_node)
-        # Add the edges to the graph
-        graph_builder.set_entry_point("tool_agent")
-        graph_builder.add_edge("tool_agent", "review_agent")
-        graph_builder.add_conditional_edges(
-            "review_agent",
-            self.should_continue,
-            {
-                True: "tool_agent",
-                False: END,
-            }
-        )
-        # graph_builder.add_edge("format_response_agent", END)
-        return graph_builder
-
-    def should_continue(self, state: LightdashOpsWorkflowState) -> bool:
-        """Check if the agent should continue"""
-        return state["call_tools"]
-
-    def tool_agent_node(self):
-        """Create the tool agent node"""
-        system_prompt = textwrap.dedent("""\
-            You are a helpful assistant that can use tools to get the data from Lightdash.
-            You will use the tools to get the data and return the response to the user.
-
-            If you reach the final output, you will set the raw_response to the response.
-            Ensure that all required keys are present in the state schema, including 'remaining_steps'.
-            """.strip())
-        return create_react_agent(
-            self.llm,
-            self.tools,
-            state_modifier=system_prompt,
-            state_schema=LightdashOpsWorkflowState,
-        )
-
-    def review_node(self, state: LightdashOpsWorkflowState) -> LightdashOpsWorkflowState:
-        """Create the review node"""
-        # Call the LLM with the messages
-        messages = [
-            SystemMessage(content=textwrap.dedent("""\
-                You are an expert reviewer tasked with evaluating the effectiveness of the current response to the user's inquiry.
-                Utilize the available tools to gather relevant data and formulate a thorough response.
-
-                Your evaluation should follow these guidelines:
-
-                1. If the response sufficiently answers the user's question, populate the `answer` field with the response.
-                2. If the response is insufficient, indicate further action is needed.
-                3. If additional clarification is required, assign the clarification question to the `question` field.
-
-                Ensure that if the response is satisfactory, `call_tools` is set to `False`. Conversely, if it is inadequate, set `call_tools` to `True`.
-                If the response does not have the necessary tools for data retrieval, also set `call_tools` to `False`, as data cannot be retrieved without the appropriate tools.
-
-                If the response is found wanting, please be mindful of the following common pitfalls:
-
-                ## Common Pitfalls
-                1. Always use the project UUID instead of the project name when retrieving data.
-                   It may be helpful to fetch all projects to determine the project UUID from the project name.
-                2. Always use the user UUID instead of the user name when retrieving data.
-                   It may be helpful to fetch all users to determine the user UUID from the user name.
-            """.strip())),
-            get_last_ai_message(state["messages"]),
-            HumanMessage(content=state["user_input_history"][-1]),
-        ]
-        response = self.llm.with_structured_output(ReviewOutput).invoke(messages)
-        print("============: review_node")
-        print(response)
-        if not isinstance(response, ReviewOutput):
-            raise ValueError(f"Unexpected result type from LLM: {response}")
-
-        # Update the state
-        state["call_tools"] = True if len(response.solution) > 0 else False
-        # Append the solution to the messages if the call_tools is True
-        if state["call_tools"]:
-            state["messages"].append(AIMessage(content=response.solution))
-        else:
-            state["raw_response"] = response.answer if response.answer else response.question
-        return state
-
-    def format_response_node(self, state: LightdashOpsWorkflowState) -> LightdashOpsWorkflowState:
-        """Format the response node"""
-        if not state["raw_response"] or state["raw_response"] == "":  # Ensure there is a message to process
-            raise ValueError("No messages to format.")
-        messages = [
-            SystemMessage(content=textwrap.dedent("""\
-                You are a skilled response formatter tasked with enhancing the clarity and presentation of the user's answer.
-                Your goal is to ensure that the response is well-structured, concise, and directly addresses the user's question.
-                For instance, it might be good to create a table or a list to make the response more readable.
-            """.strip())),
-            state["raw_response"],
-        ]
-        print(messages)
-        response = self.llm.with_structured_output(FormatResponseOutput).invoke(messages)
-        if isinstance(response, FormatResponseOutput):
-            # Update the state
-            state["formatted_response"] = response.formatted_response
-        else:
-            raise ValueError("Unexpected result type from LLM.")
-        return state
-
-
-def create_agent(lightdash_client: LightdashClient, llm: ChatGoogleGenerativeAI):
-    """Create the agent with the tools"""
-    return create_react_agent(llm, get_all_readable_tools(lightdash_client=lightdash_client))
 
 
 def main():
@@ -239,7 +85,10 @@ def main():
     )
 
     # Initialize LLM
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=google_ai_token)
+    llm = ChatGoogleGenerativeAI(
+      model="gemini-1.5-flash",
+      google_api_key=google_ai_token,
+      temperature=0.1)
 
     # Create workflow
     if st.session_state.state is None:
@@ -250,18 +99,18 @@ def main():
       get_all_readable_tools(lightdash_client=client),
       checkpointer=memory,
       state_modifier=textwrap.dedent("""\
-        You are a helpful assistant that can use tools to get the data from Lightdash.
-        You will use the tools to get the data and return the response to the user.
+        You are an advanced assistant designed to leverage tools for retrieving data from Lightdash efficiently.
+        Your primary objective is to utilize these tools to extract relevant information and provide comprehensive responses to user inquiries.
+        In cases where the data cannot be retrieved, you should proactively engage the user by prompting them to clarify or refine their question for better results.
+        You have to return any content. Don't return empty content.
 
-        The response should be in the markdown format.
+        Ensure that all responses are formatted in Markdown for clarity and readability.
 
-        There are some common pitfalls to be aware of when using the tools:
+        Be mindful of the following common pitfalls when using the tools:
 
         ## Common Pitfalls
-        1. Always use the project UUID instead of the project name when retrieving data.
-            It may be helpful to fetch all projects to determine the project UUID from the project name.
-        2. Always use the user UUID instead of the user name when retrieving data.
-            It may be helpful to fetch all users to determine the user UUID from the user name.
+        1. Always utilize the project UUID instead of the project name when retrieving data. To find the project UUID, consider fetching all projects first.
+        2. Always use the user UUID instead of the user name when retrieving data. It may be beneficial to fetch all users to ascertain the user UUID from the user name.
         """.strip()),
       )
 
@@ -278,11 +127,7 @@ def main():
     # Generate assistant response
     if user_input:
         # Update state
-        print("============: state (before)")
-        print(st.session_state.state)
         update_state(st.session_state.state, user_input=user_input)
-        print("============: state (after)")
-        print(st.session_state.state)
         # Append user message to session state
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
@@ -296,14 +141,22 @@ def main():
                     "recursion_limit": 1000,
                 }
                 # Stream workflow events
-                events = agent.stream(st.session_state.state, config, stream_mode="values")
-                messages = []
-                for event in events:
-                    # Log workflow messages
-                    last_message = event["messages"][-1]
-                    st.session_state.logs.append(last_message)
-                    messages.append(last_message)
-                response = messages[-1].content if len(messages) > 0 else ""
+                response = ""
+                for _ in range(3):
+                    if response == "":
+                        events = agent.stream(st.session_state.state, config, stream_mode="values")
+                        messages = []
+                        for event in events:
+                            # Log workflow messages
+                            last_message = event["messages"][-1]
+                            st.session_state.logs.append(last_message)
+                            messages.append(last_message)
+                        response = messages[-1].content if messages else ""
+                if response == "":
+                    response = textwrap.dedent("""\
+                        I'm sorry, but I couldn't retrieve the data you requested.
+                        Please refine your question or provide more details.
+                        """.strip())
                 # # Retrieve the formatted response
                 # snapshot_state = agent.get_state(config=config)
                 # response = snapshot_state.values.get("raw_response", "")
@@ -315,8 +168,6 @@ def main():
                 st.success("Response received:")
                 # Get the latest state
                 st.session_state.state = agent.get_state(config=config).values
-                print("============: snapshot state")
-                print(st.session_state.state)
             except Exception as e:
                 st.error(f"Error: {e}")
 
