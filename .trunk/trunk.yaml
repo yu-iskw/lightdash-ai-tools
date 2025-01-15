@@ -18,9 +18,9 @@ runtimes:
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
   disabled:
+    - sourcery
     - black
   enabled:
-    - sourcery@1.28.0
     - semgrep@1.101.0
     - pre-commit-hooks@5.0.0
     - trivy@0.58.1
