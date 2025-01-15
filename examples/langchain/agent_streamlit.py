@@ -30,9 +30,6 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 
 # from typing_extensions import TypedDict
 
-
-
-
 class LightdashOpsWorkflowState(AgentState):
     """The state of the agent"""
     # messages: List[AnyMessage]
@@ -44,21 +41,30 @@ class LightdashOpsWorkflowState(AgentState):
 
 def get_initial_state(initial_user_input: str) -> LightdashOpsWorkflowState:
     """Get the initial state of the agent"""
-    return {
-      "messages": [
-        HumanMessage(content=initial_user_input),
+    return LightdashOpsWorkflowState(
+        messages=[
+            HumanMessage(content=initial_user_input),
         ],
-      "user_input_history": [initial_user_input],
-      "need_refine": False,
-      "raw_response": "",  # Added raw_response to match the TypedDict
-      "formatted_response": "",
-      }
+        user_input_history=[initial_user_input],
+        need_refine=False,
+        raw_response="",  # Added raw_response to match the TypedDict
+        formatted_response="",
+    )
+
+def update_state(state: LightdashOpsWorkflowState, user_input: str) -> LightdashOpsWorkflowState:
+    """Update the state with the user input"""
+    state["messages"].append(HumanMessage(content=user_input))
+    state["user_input_history"].append(user_input)
+    return state
 
 
 class ReviewOutput(BaseModel):
     """The output of the review response"""
     solution: str = Field(..., description="The solution to the user's question")
     need_refine: bool = Field(..., description="Whether the solution needs to be refined")
+
+    answer: str = Field(..., description="The answer to the user's question")
+    question: str = Field(..., description="The question to the user's question to clarify")
 
 
 class FormatResponseOutput(BaseModel):
@@ -116,10 +122,10 @@ class LightdashOpsWorkflow:
             Ensure that all required keys are present in the state schema, including 'remaining_steps'.
             """.strip())
         return create_react_agent(
-          self.llm,
-          self.tools,
-          state_modifier=system_prompt,
-          state_schema=LightdashOpsWorkflowState,
+            self.llm,
+            self.tools,
+            state_modifier=system_prompt,
+            state_schema=LightdashOpsWorkflowState,
         )
 
     def review_node(self, state: LightdashOpsWorkflowState) -> LightdashOpsWorkflowState:
@@ -127,45 +133,52 @@ class LightdashOpsWorkflow:
         # Call the LLM with the messages
         messages = [
             SystemMessage(content=textwrap.dedent("""\
-                You are a helpful reviewer to check if the current response answers the user's question.
+                You are a knowledgeable reviewer tasked with evaluating whether the current response adequately addresses the user's question.
+                Utilize the available tools to gather necessary data and formulate a response.
 
-                If the response is enough, you will set the need_refine to False.
-                Otherwise, you will set the need_refine to True.
-                And, if it lacks tools to get the data, you will set the need_refine to False too.
-                That's because it is not possible to get the data without extra tools.
+                1. If the response sufficiently answers the question, set `need_refine` to `False` and populate the `answer` field with the response.
+                2. If the response is insufficient, set `need_refine` to `True`.
+                3. If clarification is needed, assign the clarification question to the `question` field.
 
-                If the response is not enough, you will think of the solution to avoid the following pitfalls.
+                Additionally, if the response is adequate, ensure `need_refine` is set to `False`.
+                If it is not sufficient, set `need_refine` to `True`.
+                If the response lacks the necessary tools to retrieve data, also set `need_refine` to `False`, as data retrieval is not feasible without the appropriate tools.
+
+                If the response is inadequate, consider the following common pitfalls to avoid:
 
                 ## Common Pitfalls
-                - We have to pass the project UUID, not the project name, to get the data.
-                  So, it might be good to get all the projects so that we can identify the project UUID from the project name.
-                - We have to pass the user UUID, not the user name, to get the data.
-                  So, it might be good to get all the users so that we can identify the user UUID from the user name.
+                1. Ensure you are passing the project UUID instead of the project name to retrieve data.
+                   It may be beneficial to fetch all projects to identify the project UUID from the project name.
+                2. Ensure you are passing the user UUID instead of the user name to retrieve data.
+                   It may be beneficial to fetch all users to identify the user UUID from the user name.
             """.strip())),
-            state["messages"][-1]
+            get_last_ai_message(state["messages"]),
+            HumanMessage(content=state["user_input_history"][-1]),
         ]
         response = self.llm.with_structured_output(ReviewOutput).invoke(messages)
-        if isinstance(response, ReviewOutput):
-            # Update the state
-            state["need_refine"] = response.need_refine
-            # Append the solution to the messages if the need_refine is True
-            if response.need_refine:
-              state["messages"].append(AIMessage(content=response.solution))
+        if not isinstance(response, ReviewOutput):
+            raise ValueError(f"Unexpected result type from LLM: {response}")
+
+        # Update the state
+        state["need_refine"] = response.need_refine
+        # Append the solution to the messages if the need_refine is True
+        if response.need_refine:
+            state["messages"].append(AIMessage(content=response.solution))
         else:
-            raise ValueError("Unexpected result type from LLM.")
+            state["raw_response"] = response.answer if response.answer else response.question
         return state
 
     def format_response_node(self, state: LightdashOpsWorkflowState) -> LightdashOpsWorkflowState:
         """Format the response node"""
-        if not state["raw_response"]:  # Ensure there is a message to process
+        if not state["raw_response"] or state["raw_response"] == "":  # Ensure there is a message to process
             raise ValueError("No messages to format.")
         messages = [
-          SystemMessage(content=textwrap.dedent("""\
-            You are a skilled response formatter tasked with enhancing the clarity and presentation of the user's answer.
-            Your goal is to ensure that the response is well-structured, concise, and directly addresses the user's question.
-            For instance, it might be good to create a table or a list to make the response more readable.
-          """.strip())),
-          state["raw_response"],
+            SystemMessage(content=textwrap.dedent("""\
+                You are a skilled response formatter tasked with enhancing the clarity and presentation of the user's answer.
+                Your goal is to ensure that the response is well-structured, concise, and directly addresses the user's question.
+                For instance, it might be good to create a table or a list to make the response more readable.
+            """.strip())),
+            state["raw_response"],
         ]
         print(messages)
         response = self.llm.with_structured_output(FormatResponseOutput).invoke(messages)
@@ -219,35 +232,41 @@ def main():
         if not question:
             chat_tab.warning("Please enter a question to proceed.")
         else:
+            # Chat
+            user = chat_tab.chat_message("user")
+            chat_bot = chat_tab.chat_message("assistant")
+            #  Initialize the state
             init_state = get_initial_state(initial_user_input=question)
             config = {
-              "configurable": {"thread_id": "1"},
-              "recursion_limit": 1000,
-              }
+                "configurable": {"thread_id": "1"},
+                "recursion_limit": 1000,
+            }
             while True:  # Loop to continue the chat
-              with st.spinner("Generating response..."):
-                  try:
-                    events = workflow.stream(init_state, config, stream_mode="values")
-                    response = ""
-                    for s in events:
-                      # Leave the logs to the workflow log tab
-                      last_message = s["messages"][-1]
-                      logs_tab.write(last_message)
-                    # Get the formatted response from the snapshot state
-                    snapsnot_state = workflow.get_state(config=config)
-                    print(snapsnot_state)
-                    response = snapsnot_state.values.get("formatted_response", "")
-                    chat_tab.success("Response received:")
-                    chat_tab.chat_message("assistant").markdown(response)
-                  except Exception as e:
-                    chat_tab.error(f"Error: {e}")
+                user.write(question)
+                with st.spinner("Generating response..."):
+                    try:
+                        events = workflow.stream(init_state, config, stream_mode="values")
+                        response = ""
+                        for s in events:
+                            # Leave the logs to the workflow log tab
+                            last_message = s["messages"][-1]
+                            logs_tab.write(last_message)
+                        # Get the formatted response from the snapshot state
+                        snapshot_state = workflow.get_state(config=config)
+                        response = snapshot_state.values.get("formatted_response", "")
+                        chat_tab.success("Response received:")
+                        chat_bot.write(response)
+                    except Exception as e:
+                        chat_tab.error(f"Error: {e}")
 
-                  # Human-in-the-loop: Ask for user confirmation on the response
-                  if next_question := chat_tab.chat_input("Enter your next question:"):  # Prompt for next input
-                      question = next_question
-                  else:  # Exit loop if no new question is provided
-                      chat_tab.warning("Please enter a question to proceed.")
-                      break
+                    # Human-in-the-loop: Ask for user confirmation on the response
+                    question = chat_tab.chat_input("Enter your next question:")  # Prompt for next input
+                    if question:
+                        updated_state = update_state(init_state, question)
+                        workflow.update_state(config, updated_state)
+                    else:  # Exit loop if no new question is provided
+                        chat_tab.warning("Please enter a question to proceed.")
+                        break
 
 
 if __name__ == "__main__":
