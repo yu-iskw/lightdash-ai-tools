@@ -32,9 +32,9 @@ class RequestType(str, Enum):
 class LightdashClient(BaseModel):
     """A client for the Lightdash API"""
 
-    base_url: str = Field(alias="base_url", description="Base URL for the Lightdash API")
-    token: SecretStr = Field(alias="token", description="API authentication token")
-    timeout: int = Field(alias="timeout", description="Request timeout in seconds", default=30)
+    base_url: str = Field(description="Base URL for the Lightdash API")
+    token: SecretStr = Field(description="API authentication token")
+    timeout: int = Field(default=30, description="Request timeout in seconds")
 
     def call(
         self,
@@ -55,8 +55,7 @@ class LightdashClient(BaseModel):
         Returns:
             Dict[str, Any]: Parsed JSON response
         """
-        base_url = self.base_url.rstrip("/")
-        url = f'{base_url}{path}'
+        url = f"{self.base_url.rstrip('/')}{path}"
 
         headers = {
             'Authorization': f'ApiKey {self.token.get_secret_value()}',
@@ -76,7 +75,7 @@ class LightdashClient(BaseModel):
             return response.json()
         except requests.RequestException as e:
             error_message = textwrap.dedent(f"""\
-              API call failed: {e}
+                API call failed: {e}
 
               URL: {url}
               Parameters: {parameters}

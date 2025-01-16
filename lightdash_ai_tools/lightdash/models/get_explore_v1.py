@@ -14,7 +14,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
 class DefaultTimeDimension(BaseModel):
@@ -133,6 +133,13 @@ class Dimension(BaseModel):
     timeInterval: Optional[str] = Field(None, description="Time interval for date dimensions")
     timeIntervalBaseDimensionName: Optional[str] = Field(None, description="Base dimension name for time intervals")
 
+    @computed_field(description="Reference of the dimension")
+    def reference(self) -> Optional[str]:
+        """Reference of the dimension"""
+        if self.table and self.name:
+            return f"{self.table}_{self.name}"
+        return None
+
 
 class Metric(BaseModel):
     """Metric"""
@@ -155,6 +162,12 @@ class Metric(BaseModel):
     tablesReferences: Optional[List[str]] = Field(None, description="Tables referenced by the metric")
     dimensionReference: Optional[str] = Field(None, description="Reference to the related dimension")
 
+    @computed_field(description="Reference of the metric")
+    def reference(self) -> Optional[str]:
+        """Reference of the metric"""
+        if self.table and self.name:
+            return f"{self.table}_{self.name}"
+        return None
 
 class GetExploreV1Results(BaseModel):
     """Explore results"""
@@ -184,7 +197,6 @@ class GetExploreV1Results(BaseModel):
     schemaName: Optional[str] = Field(None, description="Schema name")
     description: Optional[str] = Field(None, description="Explore description")
     timeframes: Optional[List[str]] = Field(None, description="Available timeframes")
-
 
 class GetExploreV1Response(BaseModel):
     results: GetExploreV1Results = Field(None, description="Explore results")
