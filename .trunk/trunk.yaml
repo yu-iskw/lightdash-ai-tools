@@ -22,15 +22,15 @@ lint:
     - black
     - sourcery
   enabled:
-    - semgrep@1.101.0
+    - semgrep@1.102.0
     - pre-commit-hooks@5.0.0
-    - trivy@0.58.1
+    - trivy@0.58.2
     - osv-scanner@1.9.2
     - actionlint@1.7.6
-    - bandit@1.8.0
-    - checkov@3.2.350
+    - bandit@1.8.2
+    - checkov@3.2.353
     - isort@5.13.2
-    - ruff@0.8.6
+    - ruff@0.9.1
     - shellcheck@0.10.0
     - shfmt@3.6.0
     - taplo@0.9.3
@@ -38,7 +38,7 @@ lint:
     - git-diff-check
     - markdownlint@0.43.0
     - prettier@3.4.2
-    - trufflehog@3.88.1
+    - trufflehog@3.88.2
 actions:
   enabled:
     - trunk-announce
