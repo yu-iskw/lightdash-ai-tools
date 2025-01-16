@@ -6,8 +6,6 @@ on:
     # Runs every Wednesday (in the UTC timezone)
     - cron: 0 0 * * 3
 
-permissions: read-all
-
 jobs:
   trunk_upgrade:
     name: Upgrade Trunk
