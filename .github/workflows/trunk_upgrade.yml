@@ -22,3 +22,4 @@ jobs:
         uses: trunk-io/trunk-action/upgrade@v1
         with:
           signoff: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
