@@ -1,6 +1,7 @@
 name: Upgrade Trunk
 
 on:
+  pull_request:
   workflow_dispatch: {}
   schedule:
     # Runs every Wednesday (in the UTC timezone)
