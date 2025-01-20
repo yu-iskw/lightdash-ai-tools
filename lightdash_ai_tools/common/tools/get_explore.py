@@ -18,8 +18,10 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Results
 
 
-class GetExploreController:
+class GetExploreDetails:
     """Controller for the GetExplore tool"""
+    name: str = "get_explore"
+    description: str = "Get details of a specific explore in a project"
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
