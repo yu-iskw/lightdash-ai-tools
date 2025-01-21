@@ -32,7 +32,7 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
         page_size: Optional[int] = None,
         search_query: Optional[str] = None,
         project_uuid: Optional[str] = None,
-        include_groups: Optional[float] = None
+        include_groups: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
         List organization members.
@@ -47,21 +47,69 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
         Returns:
             Dict[str, Any]
         """
-        if page_size is None:
-            page_size = 100
-        parameters = {
-            k: str(v) for k, v in {
-                'page': page,
-                'pageSize': page_size,
-                'searchQuery': search_query,
-                'projectUuid': project_uuid,
-                'includeGroups': include_groups
-            }.items() if v is not None
-        }
+        formatted_path = self._get_endpoint()
+        params = {}
+        if page is not None:
+            params["page"] = page
+        if page_size is not None:
+            params["pageSize"] = page_size
+        if search_query is not None:
+            params["searchQuery"] = search_query
+        if project_uuid is not None:
+            params["projectUuid"] = project_uuid
+        if include_groups is not None:
+            params["includeGroups"] = include_groups
 
-        formatted_path = "/api/v1/org/users"
-        response_data = self.lightdash_client.call(self.request_type, formatted_path, parameters=parameters)
+        response_data = self.lightdash_client.call(
+            request_type=self.request_type, path=formatted_path, params=params
+        )
         return response_data
+
+    async def _arequest(
+        self,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        search_query: Optional[str] = None,
+        project_uuid: Optional[str] = None,
+        include_groups: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        List organization members.
+
+        Args:
+            page: Page number for pagination
+            page_size: Number of results per page
+            search_query: Search query to filter members
+            project_uuid: Filter users who can view this project
+            include_groups: Optional parameter for groups
+
+        Returns:
+            Dict[str, Any]
+        """
+        formatted_path = self._get_endpoint()
+        params = {}
+        if page is not None:
+            params["page"] = page
+        if page_size is not None:
+            params["pageSize"] = page_size
+        if search_query is not None:
+            params["searchQuery"] = search_query
+        if project_uuid is not None:
+            params["projectUuid"] = project_uuid
+        if include_groups is not None:
+            params["includeGroups"] = include_groups
+
+        response_data = await self.lightdash_client.acall(
+            request_type=self.request_type, path=formatted_path, params=params
+        )
+        return response_data
+
 
     def _parse_response(self, response_data: Dict[str, Any]) -> ListOrganizationMembersV1Response:
         return ListOrganizationMembersV1Response(**response_data)
+
+    def _get_endpoint(self) -> str:
+        """
+        Build the path for the API request.
+        """
+        return "/api/v1/org/users"

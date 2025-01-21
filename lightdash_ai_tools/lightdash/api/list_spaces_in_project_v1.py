@@ -21,20 +21,43 @@ from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
 )
 
 
-class ListSpacesInProject(BaseLightdashApiCaller[ListSpacesInProjectV1Response]):
+class ListSpacesInProjectV1(BaseLightdashApiCaller[ListSpacesInProjectV1Response]):
     """Gets all spaces in a project"""
     request_type = RequestType.GET
 
-    def _request(self, project_uuid: str) -> Dict[str, Any]:
+    def _request(self, project_uuid: str, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         """
         Retrieve all spaces in the current project.
 
+        Args:
+            project_uuid (str): The UUID of the project to retrieve spaces from.
+
         Returns:
-            ListSpacesInProjectResponse: List of spaces in the project.
+            Dict[str, Any]: List of spaces in the project.
         """
-        formatted_path = "/api/v1/projects/{projectUuid}/spaces".format(projectUuid=project_uuid)
+        formatted_path = self._get_endpoint(project_uuid=project_uuid)
         response_data = self.lightdash_client.call(self.request_type, formatted_path)
+        return response_data
+
+    async def _arequest(self, project_uuid: str, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+        """
+        Retrieve all spaces in the current project asynchronously.
+
+        Args:
+            project_uuid (str): The UUID of the project to retrieve spaces from.
+
+        Returns:
+            Dict[str, Any]: List of spaces in the project.
+        """
+        formatted_path = self._get_endpoint(project_uuid=project_uuid)
+        response_data = await self.lightdash_client.acall(self.request_type, formatted_path)
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> ListSpacesInProjectV1Response:
         return ListSpacesInProjectV1Response(**response_data)
+
+    def _get_endpoint(self, project_uuid: str) -> str:
+        """
+        Build the path for the API request.
+        """
+        return f"/api/v1/projects/{project_uuid}/spaces"

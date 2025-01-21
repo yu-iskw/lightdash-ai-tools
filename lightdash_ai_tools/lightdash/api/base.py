@@ -37,16 +37,30 @@ class BaseLightdashApiCaller(Generic[T], ABC):
 
     def call(self, *args: Any, **kwargs: Any) -> T:
         """
-        Abstract method to be implemented by subclasses.
+        Makes a synchronous API call and returns the parsed response.
 
         Raises:
-            NotImplementedError: If not implemented by a subclass.
+            ValueError: If the API response is invalid.
         """
         response_data = self._request(*args, **kwargs)
         try:
             return self._parse_response(response_data)
         except ValidationError as validation_error:
             raise ValueError(f"Invalid response from Lightdash API: {validation_error.errors()}") from validation_error
+
+    async def acall(self, *args: Any, **kwargs: Any) -> T:
+        """
+        Makes an asynchronous API call and returns the parsed response.
+
+        Raises:
+            ValueError: If the API response is invalid.
+        """
+        response_data = await self._arequest(*args, **kwargs)
+        try:
+            return self._parse_response(response_data)
+        except ValidationError as validation_error:
+            raise ValueError(f"Invalid response from Lightdash API: {validation_error.errors()}") from validation_error
+
 
     @abstractmethod
     def _request(
@@ -55,7 +69,7 @@ class BaseLightdashApiCaller(Generic[T], ABC):
         **kwargs: Any
     ) -> Dict[str, Any]:
         """
-        Makes a request to the Lightdash API and returns the raw response.
+        Makes a synchronous request to the Lightdash API and returns the raw response.
 
         Args:
             *args: Any positional arguments.
@@ -67,6 +81,25 @@ class BaseLightdashApiCaller(Generic[T], ABC):
         raise NotImplementedError("Subclasses must implement this method")
 
     @abstractmethod
+    async def _arequest(
+        self,
+        *args: Any,
+        **kwargs: Any
+    ) -> Dict[str, Any]:
+        """
+        Makes an asynchronous request to the Lightdash API and returns the raw response.
+
+        Args:
+            *args: Any positional arguments.
+            **kwargs: Any keyword arguments.
+
+        Returns:
+            Dict[str, Any]: The raw response data from the API.
+        """
+        raise NotImplementedError("Subclasses must implement this method")
+
+
+    @abstractmethod
     def _parse_response(self, response_data: Dict[str, Any]) -> T:
         """
         Parse the API response into the expected model.
@@ -76,5 +109,12 @@ class BaseLightdashApiCaller(Generic[T], ABC):
 
         Returns:
             T: Parsed response model.
+        """
+        raise NotImplementedError("Subclasses must implement this method")
+
+    @abstractmethod
+    def _get_endpoint(self, *args: Any, **kwargs: Any) -> str:
+        """
+        Build the path for the API request.
         """
         raise NotImplementedError("Subclasses must implement this method")

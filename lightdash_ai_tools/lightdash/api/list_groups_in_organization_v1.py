@@ -31,7 +31,7 @@ class ListGroupsInOrganizationV1(BaseLightdashApiCaller[ListGroupsInOrganization
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         search_query: Optional[str] = None,
-        include_members: Optional[float] = None
+        include_members: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
         List groups in the organization.
@@ -45,20 +45,62 @@ class ListGroupsInOrganizationV1(BaseLightdashApiCaller[ListGroupsInOrganization
         Returns:
             Dict[str, Any]
         """
-        if page_size is None:
-            page_size = 100
-        parameters = {
-            k: str(v) for k, v in {
-                'page': page,
-                'pageSize': page_size,
-                'searchQuery': search_query,
-                'includeMembers': include_members
-            }.items() if v is not None
-        }
+        formatted_path = self._get_endpoint()
+        params = {}
+        if page is not None:
+            params["page"] = page
+        if page_size is not None:
+            params["pageSize"] = page_size
+        if search_query is not None:
+            params["searchQuery"] = search_query
+        if include_members is not None:
+            params["includeMembers"] = include_members
 
-        formatted_path = "/api/v1/org/groups"
-        response_data = self.lightdash_client.call(self.request_type, formatted_path, parameters=parameters)
+        response_data = self.lightdash_client.call(
+            request_type=self.request_type, path=formatted_path, params=params
+        )
+        return response_data
+
+    async def _arequest(
+        self,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        search_query: Optional[str] = None,
+        include_members: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        List groups in the organization asynchronously.
+
+        Args:
+            page: Page number for pagination
+            page_size: Number of results per page
+            search_query: Search query to filter groups
+            include_members: Optional parameter to include members in the group details
+
+        Returns:
+            Dict[str, Any]
+        """
+        formatted_path = self._get_endpoint()
+        params = {}
+        if page is not None:
+            params["page"] = page
+        if page_size is not None:
+            params["pageSize"] = page_size
+        if search_query is not None:
+            params["searchQuery"] = search_query
+        if include_members is not None:
+            params["includeMembers"] = include_members
+
+        response_data = await self.lightdash_client.acall(
+            request_type=self.request_type, path=formatted_path, params=params
+        )
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> ListGroupsInOrganizationV1Response:
         return ListGroupsInOrganizationV1Response(**response_data)
+
+    def _get_endpoint(self) -> str:
+        """
+        Build the path for the API request.
+        """
+        return "/api/v1/org/groups"

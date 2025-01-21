@@ -24,11 +24,7 @@ class GetGroupV1(BaseLightdashApiCaller[GetGroupV1Response]):
     """Get group details"""
     request_type = RequestType.GET
 
-    def _request(self,
-                 group_uuid: str,
-                 include_members: Optional[int] = None,
-                 offset: Optional[int] = None
-                 ) -> Dict[str, Any]:
+    def _request(self, group_uuid: str, include_members: Optional[int] = None, offset: Optional[int] = None) -> Dict[str, Any]:
         """
         Retrieve a specific group.
 
@@ -38,15 +34,48 @@ class GetGroupV1(BaseLightdashApiCaller[GetGroupV1Response]):
             offset (Optional[int]): Offset of members to include.
 
         Returns:
-            GetGroupV1Response: Details of the group.
+            Dict[str, Any]: Details of the group.
         """
-        formatted_path = f"/api/v1/groups/{group_uuid}"
+        formatted_path = self._get_endpoint(group_uuid)
         params = {}
         if include_members is not None:
             params['includeMembers'] = include_members
         if offset is not None:
             params['offset'] = offset
-        return self.lightdash_client.call(self.request_type, formatted_path, parameters=params)
+        response_data = self.lightdash_client.call(
+            request_type=self.request_type,
+            path=formatted_path,
+            parameters=params
+        )
+        return response_data
+
+    async def _arequest(self, group_uuid: str, include_members: Optional[int] = None, offset: Optional[int] = None) -> Dict[str, Any]:
+        """
+        Retrieve a specific group asynchronously.
+
+        Args:
+            group_uuid (str): The UUID of the group to retrieve.
+            include_members (Optional[int]): Number of members to include.
+            offset (Optional[int]): Offset of members to include.
+
+        Returns:
+            Dict[str, Any]: Details of the group.
+        """
+        formatted_path = self._get_endpoint(group_uuid)
+        params = {}
+        if include_members is not None:
+            params['includeMembers'] = include_members
+        if offset is not None:
+            params['offset'] = offset
+        response_data = await self.lightdash_client.acall(
+            request_type=self.request_type,
+            path=formatted_path,
+            parameters=params
+        )
+        return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> GetGroupV1Response:
         return GetGroupV1Response(**response_data)
+
+    def _get_endpoint(self, group_uuid: str) -> str:
+        return f"/api/v1/groups/{group_uuid}"

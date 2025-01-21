@@ -26,27 +26,48 @@ class CompileQueryV1(BaseLightdashApiCaller[CompileQueryResponseV1]):
     """Compile a query in a Lightdash project"""
     request_type = RequestType.POST
 
-    def _request(
-        self,
-        project_uuid: str,
-        explore_id: str,
-        body: CompileQueryRequestV1
-    ) -> Dict[str, Any]:
+    def _request(self, project_uuid: str, explore_id: str, body: CompileQueryRequestV1) -> Dict[str, Any]:
         """
         Compile a query for a specific explore in a project.
 
         Args:
             project_uuid (str): The UUID of the project
             explore_id (str): The ID of the explore
-            body (Dict[str, Any]): Query compilation parameters
+            body (CompileQueryRequestV1): Query compilation parameters
 
         Returns:
             Dict[str, Any]: Compiled query results
         """
-        formatted_path = f"/api/v1/projects/{project_uuid}/explores/{explore_id}/compileQuery"
+        formatted_path = self._get_endpoint(project_uuid, explore_id)
         response_data = self.lightdash_client.call(
-          self.request_type, formatted_path, data=body.model_dump(exclude=["projectUuid", "exploreId"]))
+            request_type=self.request_type,
+            path=formatted_path,
+            data=body.model_dump(exclude=["projectUuid", "exploreId"]),
+        )
+        return response_data
+
+    async def _arequest(self, project_uuid: str, explore_id: str, body: CompileQueryRequestV1) -> Dict[str, Any]:
+        """
+        Compile a query for a specific explore in a project asynchronously.
+
+        Args:
+            project_uuid (str): The UUID of the project
+            explore_id (str): The ID of the explore
+            body (CompileQueryRequestV1): Query compilation parameters
+
+        Returns:
+            Dict[str, Any]: Compiled query results
+        """
+        formatted_path = self._get_endpoint(project_uuid, explore_id)
+        response_data = await self.lightdash_client.acall(
+            request_type=self.request_type,
+            path=formatted_path,
+            data=body.model_dump(exclude=["projectUuid", "exploreId"]),
+        )
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> CompileQueryResponseV1:
         return CompileQueryResponseV1(**response_data)
+
+    def _get_endpoint(self, project_uuid: str, explore_id: str) -> str:
+        return f"/api/v1/projects/{project_uuid}/explores/{explore_id}/compileQuery"

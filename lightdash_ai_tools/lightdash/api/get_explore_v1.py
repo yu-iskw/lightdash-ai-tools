@@ -32,11 +32,35 @@ class GetExploreV1(BaseLightdashApiCaller[GetExploreV1Response]):
             explore_id (str): The ID of the explore to retrieve.
 
         Returns:
-            GetExploreV1Response: Details of the explore.
+            Dict[str, Any]: Details of the explore.
         """
-        formatted_path = f"/api/v1/projects/{project_uuid}/explores/{explore_id}".format(project_uuid=project_uuid, explore_id=explore_id)
-        response_data = self.lightdash_client.call(self.request_type, formatted_path)
+        formatted_path = self._get_endpoint(project_uuid, explore_id)
+        response_data = self.lightdash_client.call(
+            request_type=self.request_type,
+            path=formatted_path,
+        )
+        return response_data
+
+    async def _arequest(self, project_uuid: str, explore_id: str) -> Dict[str, Any]:
+        """
+        Retrieve a specific explore for a project asynchronously.
+
+        Args:
+            project_uuid (str): The UUID of the project.
+            explore_id (str): The ID of the explore to retrieve.
+
+        Returns:
+            Dict[str, Any]: Details of the explore.
+        """
+        formatted_path = self._get_endpoint(project_uuid, explore_id)
+        response_data = await self.lightdash_client.acall(
+            request_type=self.request_type,
+            path=formatted_path,
+        )
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> GetExploreV1Response:
         return GetExploreV1Response(**response_data)
+
+    def _get_endpoint(self, project_uuid: str, explore_id: str) -> str:
+        return f"/api/v1/projects/{project_uuid}/explores/{explore_id}"
