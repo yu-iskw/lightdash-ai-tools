@@ -12,14 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Type
+
+from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.get_project_v1 import GetProjectV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResults
 
 
-class GetProjectController:
+class GetProjectToolInput(BaseModel):
+    """Input for the GetProject tool."""
+    project_uuid: str = Field(description="The UUID of the project to fetch. That isn't the project name.")
+
+
+class GetProject:
     """Controller for the GetProject tool"""
+
+    name: str = "get_project"
+    description: str = "Get the project details associated with the given UUID."
+    input_schema: Type[BaseModel] = GetProjectToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""

@@ -22,23 +22,19 @@ from langchain_core.callbacks import (
 from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel
 
+from lightdash_ai_tools.common.tools.get_projects import GetProjects
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.controller.get_projects import GetProjectsController
 from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
     ListOrganizationProjectsV1Results,
 )
 
 
-class GetProjectsToolInput(BaseModel):
-    """Input for the GetProjectsTool tool."""
-
-
 class GetProjectsTool(BaseTool):
     """Get project details by UUID."""
 
-    name: str = "get_projects"
-    description: str = "Get all projects in the organization."
-    args_schema: Type[BaseModel] = GetProjectsToolInput
+    name: str = GetProjects.name
+    description: str = GetProjects.description
+    args_schema: Type[BaseModel] = GetProjects.input_schema
     return_direct: bool = False
     handle_tool_error: bool = True
     handle_validation_error: bool = True
@@ -47,8 +43,8 @@ class GetProjectsTool(BaseTool):
 
     def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListOrganizationProjectsV1Results]:
         try:
-            controller = GetProjectsController(lightdash_client=self.lightdash_client)
-            results = controller()
+            tool = GetProjects(lightdash_client=self.lightdash_client)
+            results = tool()
             return results
         except Exception as e:
             error_message = textwrap.dedent(f"""\

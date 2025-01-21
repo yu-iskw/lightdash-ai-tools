@@ -22,26 +22,22 @@ from langchain_core.callbacks import (
 from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel
 
-from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.controller.get_organization_members import (
-    GetOrganizationMembersController,
+from lightdash_ai_tools.common.tools.get_organization_members import (
+    GetOrganizationMembers,
 )
+from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
     ListOrganizationMembersV1Results,
     OrganizationMemberModel,
 )
 
 
-class GetOrganizationMembersToolInput(BaseModel):
-    """Input for the GetOrganizationMembersTool tool."""
-
-
 class GetOrganizationMembersTool(BaseTool):
     """Get organization members"""
 
-    name: str = "get_organization_members"
-    description: str = "Get all members of the current user's organization"
-    args_schema: Type[BaseModel] = GetOrganizationMembersToolInput
+    name: str = GetOrganizationMembers.name
+    description: str = GetOrganizationMembers.description
+    args_schema: Type[BaseModel] = GetOrganizationMembers.input_schema
     return_direct: bool = False
     handle_tool_error: bool = True
     handle_validation_error: bool = True
@@ -56,8 +52,8 @@ class GetOrganizationMembersTool(BaseTool):
             List of organization members
         """
         try:
-            controller = GetOrganizationMembersController(lightdash_client=self.lightdash_client)
-            return controller()
+            tool = GetOrganizationMembers(lightdash_client=self.lightdash_client)
+            return tool()
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving organization members.

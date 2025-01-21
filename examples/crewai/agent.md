@@ -1,10 +1,10 @@
-## Design Document: Multi-Agent System for Lightdash Investigation with Human-in-the-Loop
+# Design Document: Multi-Agent System for Lightdash Investigation with Human-in-the-Loop
 
-### 1. Introduction
+## 1. Introduction
 
 This document outlines the design for a multi-agent system using CrewAI to interact with Lightdash via LangChain tools. The system will enable users to investigate Lightdash resources (projects, spaces, groups, explores, etc.) through a chat interface, incorporating human-in-the-loop for guidance and error correction.
 
-### 2. System Goals
+## 2. System Goals
 
 - **Resource Investigation:** Allow users to explore Lightdash resources using natural language queries.
 - **Tool Utilization:** Effectively leverage LangChain tools for Lightdash to retrieve information.
@@ -12,7 +12,7 @@ This document outlines the design for a multi-agent system using CrewAI to inter
 - **Error Handling:** Implement a mechanism for agents to handle tool call failures and request human assistance.
 - **Chat Interface Integration:** Seamlessly integrate the multi-agent system with a chat interface (like ChatGPT).
 
-### 3. Agent Roles and Responsibilities
+## 3. Agent Roles and Responsibilities
 
 We will define the following agent roles:
 
@@ -56,7 +56,7 @@ The system will utilize the following LangChain tools for Lightdash, as provided
 - `GetGroupsInOrganizationTool`: Get all groups in the organization.
 - `GetGroupTool`: Get details of a specific group.
 
-### 5. Workflow
+## 5. Workflow
 
 1. **User Input:** The user sends a query through the chat interface (e.g., "List all projects," "Show me the members of project X," "What are the explores in project Y?").
 2. **User Proxy Agent:** The User Proxy Agent receives the query, parses the intent, and creates a task for the Lightdash Investigator Agent.
@@ -78,7 +78,7 @@ The system will utilize the following LangChain tools for Lightdash, as provided
 6. **Iteration:** The process repeats until the user's query is satisfied.
 7. **User Output:** The User Proxy Agent presents the final results to the user through the chat interface.
 
-### 6. Implementation Details
+## 6. Implementation Details
 
 - **CrewAI Setup:** Define the agents with their respective roles, goals, and tools.
 - **LangChain Integration:** Initialize the Lightdash client and load the tools using `get_all_readable_tools`.
@@ -87,7 +87,7 @@ The system will utilize the following LangChain tools for Lightdash, as provided
 - **Tool Fixer Logic:** Implement logic in the Tool Fixer Agent to analyze error messages and suggest corrections. This might involve pattern matching, argument validation, or using a language model to generate suggestions.
 - **Human Interaction:** Design a clear and intuitive way for the user to interact with the system, provide feedback, and correct errors.
 
-### 7. Example Code Snippet (Conceptual)
+## 7. Example Code Snippet (Conceptual)
 
 ```python
 from crewai import Agent, Crew, Task
@@ -145,7 +145,7 @@ result = crew.kickoff()
 print(result)
 ```
 
-### 8. Future Enhancements
+## 8. Future Enhancements
 
 - **Write Tools:** Implement write tools to allow users to modify Lightdash resources.
 - **Caching:** Implement caching to improve performance and reduce API calls.

@@ -12,16 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Type
+
+from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.get_explore_v1 import GetExploreV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Results
 
 
-class GetExploreDetails:
+class GetExploreToolInput(BaseModel):
+    """Input for the GetExploreTool tool."""
+    project_uuid: str = Field(description="The UUID of the project. This is not the project name.")
+    explore_id: str = Field(description="The ID of the explore to retrieve.")
+
+class GetExplore:
     """Controller for the GetExplore tool"""
+
     name: str = "get_explore"
-    description: str = "Get details of a specific explore in a project"
+    description: str = "Get a specific explore (table) in a project."
+    input_schema: Type[BaseModel] = GetExploreToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""

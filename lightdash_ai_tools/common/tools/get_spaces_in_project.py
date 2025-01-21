@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import List, Type
+
+from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.list_spaces_in_project_v1 import (
     ListSpacesInProject,
@@ -23,8 +25,17 @@ from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
 )
 
 
-class GetSpacesInProjectController:
+class GetSpacesInProjectToolInput(BaseModel):
+    """Input for the GetSpacesInProjectTool tool."""
+    project_uuid: str = Field(description="The UUID of the project to get spaces for. That isn't the project name.")
+
+
+class GetSpacesInProject:
     """Controller for the GetSpacesInProject tool"""
+
+    name: str = "get_spaces_in_project"
+    description: str = "Get spaces in a project"
+    input_schema: Type[BaseModel] = GetSpacesInProjectToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""

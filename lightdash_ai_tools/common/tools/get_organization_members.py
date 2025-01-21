@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import List, Type
+
+from pydantic import BaseModel
 
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
@@ -23,8 +25,17 @@ from lightdash_ai_tools.lightdash.services.list_organization_members_v1 import (
 )
 
 
-class GetOrganizationMembersController:
+class GetOrganizationMembersToolInput(BaseModel):
+    """Input for the GetOrganizationMembersTool tool."""
+
+
+
+class GetOrganizationMembers:
     """Controller for the GetOrganizationMembers tool"""
+
+    name: str = "get_organization_members"
+    description: str = "Get all members of the current user's organization"
+    input_schema: Type[BaseModel] = GetOrganizationMembersToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""

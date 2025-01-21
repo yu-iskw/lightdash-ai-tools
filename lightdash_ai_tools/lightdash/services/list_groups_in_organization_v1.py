@@ -21,7 +21,7 @@ from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_groups_in_organization_v1 import Group
 
 
-class ListGroupsInOrganizationService:
+class ListGroupsInOrganizationV1Service:
     def __init__(self, lightdash_client: LightdashClient):
         self.lightdash_client = lightdash_client
 

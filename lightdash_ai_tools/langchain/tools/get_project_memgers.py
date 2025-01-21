@@ -20,25 +20,18 @@ from langchain_core.callbacks import (
     CallbackManagerForToolRun,
 )
 from langchain_core.tools import BaseTool, ToolException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from lightdash_ai_tools.common.tools.get_project_members import GetProjectMembers
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.controller.get_project_members import (
-    GetProjectMembersController,
-)
-
-
-class GetProjectMembersToolInput(BaseModel):
-    """Input for the GetProjectMembersTool tool."""
-    project_uuid: str = Field(description="The UUID of the project to get members for. That isn't the project name.")
 
 
 class GetProjectMembersTool(BaseTool):
     """Get project members"""
 
-    name: str = "get_project_access_list"
-    description: str = "Get the list of users with access to a specific project"
-    args_schema: Type[BaseModel] = GetProjectMembersToolInput
+    name: str = GetProjectMembers.name
+    description: str = GetProjectMembers.description
+    args_schema: Type[BaseModel] = GetProjectMembers.input_schema
     return_direct: bool = False
     handle_tool_error: bool = True
     handle_validation_error: bool = True
@@ -57,8 +50,8 @@ class GetProjectMembersTool(BaseTool):
             List of project access members as JSON strings
         """
         try:
-            controller = GetProjectMembersController(lightdash_client=self.lightdash_client)
-            return controller(project_uuid)
+            tool = GetProjectMembers(lightdash_client=self.lightdash_client)
+            return tool(project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving project access list.

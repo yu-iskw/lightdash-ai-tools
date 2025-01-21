@@ -12,22 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import List, Optional, Type
+
+from pydantic import BaseModel
 
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_groups_in_organization_v1 import (
     Group,
     ListGroupsInOrganizationV1Response,
 )
-from lightdash_ai_tools.lightdash.services.list_groups_in_organization import (
-    ListGroupsInOrganizationService,
+from lightdash_ai_tools.lightdash.services.list_groups_in_organization_v1 import (
+    ListGroupsInOrganizationV1Service,
 )
 
 
-class GetGroupsInOrganizationController:
+class GetGroupsInOrganizationToolInput(BaseModel):
+    """Input for the GetGroupsInOrganizationTool tool."""
+    # page_size: Optional[float] = Field(
+    #     default=100,
+    #     description="Number of results per page. Defaults to 100."
+    # )
+    # include_members: Optional[float] = Field(
+    #     default=None,
+    #     description="Number of members to include in the group details"
+    # )
+    # search_query: Optional[str] = Field(
+    #     default=None,
+    #     description="Optional search query to filter groups"
+    # )
+
+
+
+
+class GetGroupsInOrganization:
     """
     Controller for managing group listing operations in the organization
     """
+    name: str = "get_groups_in_organization"
+    description: str = "Retrieve all groups in the current user's organization"
+    input_schema: Type[BaseModel] = GetGroupsInOrganizationToolInput
+
     def __init__(self, lightdash_client: LightdashClient):
         """
         Initialize the controller with a Lightdash API client
@@ -52,7 +76,7 @@ class GetGroupsInOrganizationController:
         :param search_query: Search query to filter groups
         :return: ListGroupsResponse containing groups
         """
-        service = ListGroupsInOrganizationService(lightdash_client=self.lightdash_client)
+        service = ListGroupsInOrganizationV1Service(lightdash_client=self.lightdash_client)
         return service.get_all_groups(
             page_size=page_size,
             include_members=include_members,
@@ -73,7 +97,7 @@ class GetGroupsInOrganizationController:
         :param search_query: Search query to filter groups
         :return: List of all groups
         """
-        service = ListGroupsInOrganizationService(lightdash_client=self.lightdash_client)
+        service = ListGroupsInOrganizationV1Service(lightdash_client=self.lightdash_client)
         return service.get_all_groups(
             page_size=page_size,
             include_members=include_members,
