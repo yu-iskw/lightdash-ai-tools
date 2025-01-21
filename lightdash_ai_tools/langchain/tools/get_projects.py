@@ -23,6 +23,9 @@ from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel
 
 from lightdash_ai_tools.common.tools.get_projects import GetProjects
+from lightdash_ai_tools.lightdash.api.list_organization_projects_v1 import (
+    ListOrganizationProjectsV1,
+)
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
     ListOrganizationProjectsV1Results,
@@ -30,7 +33,7 @@ from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
 
 
 class GetProjectsTool(BaseTool):
-    """Get project details by UUID."""
+    """Get all projects in the organization"""
 
     name: str = GetProjects.name
     description: str = GetProjects.description
@@ -41,28 +44,42 @@ class GetProjectsTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListOrganizationProjectsV1Results]:
+    def _run(
+        self,
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> List[ListOrganizationProjectsV1Results]:
+        """
+        Run method for getting all projects in the organization.
+
+        Returns:
+            List of projects in the organization
+        """
         try:
-            tool = GetProjects(lightdash_client=self.lightdash_client)
-            results = tool()
-            return results
+            tool = ListOrganizationProjectsV1(lightdash_client=self.lightdash_client)
+            return tool.call()
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error retrieving organization projects.
+              Error retrieving projects in organization.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e
 
     async def _arun(
-      self,
-        run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[ListOrganizationProjectsV1Results]:
+        self,
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None
+    ) -> List[ListOrganizationProjectsV1Results]:
+        """
+        Asynchronously retrieve all projects in the organization.
+
+        :param run_manager: Optional async callback manager
+        :return: List of projects in the organization
+        """
         try:
-            if run_manager is not None:
-                return self._run(run_manager=run_manager.get_sync())
-            return self._run()
+            tool = ListOrganizationProjectsV1(lightdash_client=self.lightdash_client)
+            return await tool.acall()
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error retrieving organization projects asynchronously.
+              Error retrieving projects in organization asynchronously.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e

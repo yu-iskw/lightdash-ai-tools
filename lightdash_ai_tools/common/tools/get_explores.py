@@ -36,7 +36,12 @@ class GetExplores:
         """Initialize the controller"""
         self.lightdash_client = lightdash_client
 
-    def __call__(self, project_uuid: str) -> List[GetExploresV1Results]:
+    def call(self, project_uuid: str) -> List[GetExploresV1Results]:
         """Call the controller"""
         response = GetExploresV1(lightdash_client=self.lightdash_client).call(project_uuid)
+        return response.results
+
+    async def acall(self, project_uuid: str) -> List[GetExploresV1Results]:
+        """Call the controller asynchronously"""
+        response = await GetExploresV1(lightdash_client=self.lightdash_client).acall(project_uuid)
         return response.results

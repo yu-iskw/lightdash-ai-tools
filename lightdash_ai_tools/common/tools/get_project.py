@@ -12,32 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Type
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from lightdash_ai_tools.lightdash.api.get_project_v1 import GetProjectV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResults
 
 
-class GetProjectToolInput(BaseModel):
-    """Input for the GetProject tool."""
-    project_uuid: str = Field(description="The UUID of the project to fetch. That isn't the project name.")
+class GetProjectInput(BaseModel):
+    project_uuid: str
 
 
 class GetProject:
-    """Controller for the GetProject tool"""
-
     name: str = "get_project"
-    description: str = "Get the project details associated with the given UUID."
-    input_schema: Type[BaseModel] = GetProjectToolInput
+    description: str = "Get a project by uuid"
+    input_schema = GetProjectInput
 
     def __init__(self, lightdash_client: LightdashClient):
-        """Initialize the controller"""
         self.lightdash_client = lightdash_client
 
-    def __call__(self, project_uuid: str) -> GetProjectResults:
-        """Call the controller"""
-        response = GetProjectV1(lightdash_client=self.lightdash_client).call(project_uuid)
-        return response.results
+    def call(self, project_uuid: str) -> GetProjectResults:
+        service = GetProjectV1(lightdash_client=self.lightdash_client)
+        return service.call(project_uuid=project_uuid)
+
+    async def acall(self, project_uuid: str) -> GetProjectResults:
+        service = GetProjectV1(lightdash_client=self.lightdash_client)
+        return await service.acall(project_uuid=project_uuid)

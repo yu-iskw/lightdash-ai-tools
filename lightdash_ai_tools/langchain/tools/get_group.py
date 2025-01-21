@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from typing import Optional, Type
 
 from langchain_core.callbacks import (
     AsyncCallbackManagerForToolRun,
     CallbackManagerForToolRun,
 )
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, ToolException
 from pydantic import BaseModel
 
 from lightdash_ai_tools.common.tools.get_group import GetGroup
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.models.get_group_v1 import GetGroupV1Result
+from lightdash_ai_tools.lightdash.models.get_group_v1 import GetGroupV1Response
 
 
 class GetGroupTool(BaseTool):
@@ -42,33 +43,52 @@ class GetGroupTool(BaseTool):
         self,
         group_uuid: str,
         include_members: Optional[int] = None,
-        # offset: Optional[int] = None
         run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> GetGroupV1Result:
+    ) -> GetGroupV1Response:
         """
         Run the get group tool.
 
         :param group_uuid: Unique identifier of the group
         :param include_members: Number of members to include
-        :param offset: Offset of members to include
+        :param run_manager: Optional callback manager
         :return: Group details response
         """
-        tool = GetGroup(lightdash_client=self.lightdash_client)
-        response = tool(
-            group_uuid=group_uuid,
-            include_members=include_members,
-            # offset=offset
-        )
-        return response.results
+        try:
+            tool = GetGroup(lightdash_client=self.lightdash_client)
+            return tool.call(
+                group_uuid=group_uuid,
+                include_members=include_members,
+            )
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving group details with group_uuid: {group_uuid}.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e
 
-    def _arun(self,
-              group_uuid: str,
-              include_members: Optional[int] = None,
-              # offset: Optional[int] = None
-              run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> GetGroupV1Result:
+    async def _arun(
+        self,
+        group_uuid: str,
+        include_members: Optional[int] = None,
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None
+    ) -> GetGroupV1Response:
         """
-        Async run method is not implemented.
+        Asynchronously retrieve group details.
 
-        :raises NotImplementedError: Always raised as async is not supported
+        :param group_uuid: Unique identifier of the group
+        :param include_members: Number of members to include
+        :param run_manager: Optional async callback manager
+        :return: Group details
         """
-        raise NotImplementedError("get_group does not support async execution")
+        try:
+            tool = GetGroup(lightdash_client=self.lightdash_client)
+            return await tool.acall(
+                group_uuid=group_uuid,
+                include_members=include_members
+            )
+        except Exception as e:
+            error_message = textwrap.dedent(f"""\
+              Error retrieving group details asynchronously with group_uuid: {group_uuid}.
+              Exception: {type(e).__name__}: {e}
+            """).strip()
+            raise ToolException(error_message) from e

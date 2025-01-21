@@ -28,12 +28,11 @@ from lightdash_ai_tools.common.tools.get_organization_members import (
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
     ListOrganizationMembersV1Results,
-    OrganizationMemberModel,
 )
 
 
 class GetOrganizationMembersTool(BaseTool):
-    """Get organization members"""
+    """Get members of the organization"""
 
     name: str = GetOrganizationMembers.name
     description: str = GetOrganizationMembers.description
@@ -44,16 +43,19 @@ class GetOrganizationMembersTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListOrganizationMembersV1Results]:
+    def _run(
+        self,
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> List[ListOrganizationMembersV1Results]:
         """
-        Run method for getting organization members.
+        Run method for getting members of the organization.
 
         Returns:
-            List of organization members
+            List of members in the organization
         """
         try:
             tool = GetOrganizationMembers(lightdash_client=self.lightdash_client)
-            return tool()
+            return tool.call()
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving organization members.
@@ -62,12 +64,18 @@ class GetOrganizationMembersTool(BaseTool):
             raise ToolException(error_message) from e
 
     async def _arun(
-      self,
-      run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> List[OrganizationMemberModel]:
+        self,
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None
+    ) -> List[ListOrganizationMembersV1Results]:
+        """
+        Asynchronously retrieve members of the organization.
+
+        :param run_manager: Optional async callback manager
+        :return: List of members in the organization
+        """
         try:
-            if run_manager is not None:
-                return self._run(run_manager=run_manager.get_sync())
-            return self._run()
+            tool = GetOrganizationMembers(lightdash_client=self.lightdash_client)
+            return await tool.acall()
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving organization members asynchronously.

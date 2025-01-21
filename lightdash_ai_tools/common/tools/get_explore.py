@@ -26,6 +26,7 @@ class GetExploreToolInput(BaseModel):
     project_uuid: str = Field(description="The UUID of the project. This is not the project name.")
     explore_id: str = Field(description="The ID of the explore to retrieve.")
 
+
 class GetExplore:
     """Controller for the GetExplore tool"""
 
@@ -37,7 +38,14 @@ class GetExplore:
         """Initialize the controller"""
         self.lightdash_client = lightdash_client
 
-    def __call__(self, project_uuid: str, explore_uuid: str) -> GetExploreV1Results:
+    def call(self, project_uuid: str, explore_id: str) -> GetExploreV1Results:
         """Get a specific explore in a project"""
-        response = GetExploreV1(lightdash_client=self.lightdash_client).call(project_uuid, explore_uuid)
+        response = GetExploreV1(lightdash_client=self.lightdash_client).call(project_uuid, explore_id)
+        return response.results
+
+    async def acall(self, project_uuid: str, explore_id: str) -> GetExploreV1Results:
+        """Get a specific explore in a project asynchronously"""
+        response = await GetExploreV1(lightdash_client=self.lightdash_client).acall(
+            project_uuid, explore_id
+        )
         return response.results

@@ -24,12 +24,8 @@ from pydantic import BaseModel
 
 from lightdash_ai_tools.common.tools.get_explore import GetExplore
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Response
+from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Results
 
-# class GetExploreToolInput(BaseModel):
-#     """Input for the GetExploreTool tool."""
-#     project_uuid: str = Field(description="The UUID of the project. This is not the project name.")
-#     explore_id: str = Field(description="The ID of the explore to retrieve.")
 
 class GetExploreTool(BaseTool):
     """Get a specific explore in a project"""
@@ -38,20 +34,20 @@ class GetExploreTool(BaseTool):
     description: str = GetExplore.description
     args_schema: Type[BaseModel] = GetExplore.input_schema
     return_direct: bool = False
-    handle_tool_error: bool = True  # Enable error handling
+    handle_tool_error: bool = True
     handle_validation_error: bool = True
 
     lightdash_client: LightdashClient
 
     def _run(
-      self,
-      project_uuid: str,
-      explore_id: str,
-      run_manager: Optional[CallbackManagerForToolRun] = None
-      ) -> GetExploreV1Response:
+        self,
+        project_uuid: str,
+        explore_id: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> GetExploreV1Results:
         try:
             tool = GetExplore(lightdash_client=self.lightdash_client)
-            return tool(project_uuid=project_uuid, explore_id=explore_id)
+            return tool.call(project_uuid=project_uuid, explore_id=explore_id)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explore with project_uuid: {project_uuid} and explore_id: {explore_id}.
@@ -64,11 +60,21 @@ class GetExploreTool(BaseTool):
         project_uuid: str,
         explore_id: str,
         run_manager: Optional[AsyncCallbackManagerForToolRun] = None
-    ) -> GetExploreV1Response:
+    ) -> GetExploreV1Results:
+        """
+        Asynchronously retrieve a specific explore in a project.
+
+        :param project_uuid: UUID of the project
+        :param explore_id: ID of the explore to retrieve
+        :param run_manager: Optional async callback manager
+        :return: Explore details
+        """
         try:
-            if run_manager is not None:
-                return self._run(project_uuid, explore_id, run_manager=run_manager.get_sync())
-            return self._run(project_uuid, explore_id)
+            tool = GetExplore(lightdash_client=self.lightdash_client)
+            return await tool.acall(
+                project_uuid=project_uuid,
+                explore_id=explore_id
+            )
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explore asynchronously with project_uuid: {project_uuid} and explore_id: {explore_id}.

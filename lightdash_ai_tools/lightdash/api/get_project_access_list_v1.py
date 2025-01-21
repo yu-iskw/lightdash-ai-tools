@@ -33,11 +33,31 @@ class GetProjectAccessListV1(BaseLightdashApiCaller[GetProjectAccessListV1Respon
             project_uuid (str): The UUID of the project to retrieve access list for.
 
         Returns:
-            GetProjectAccessListV1Response: Details of the project's access list.
+            Dict[str, Any]: The raw response data from the API.
         """
-        formatted_path = "/api/v1/projects/{project_uuid}/access".format(project_uuid=project_uuid)
+        formatted_path = self._get_endpoint(project_uuid=project_uuid)
         response_data = self.lightdash_client.call(self.request_type, formatted_path)
+        return response_data
+
+    async def _arequest(self, project_uuid: str) -> Dict[str, Any]:
+        """
+        Retrieve the access list for a specific project asynchronously.
+
+        Args:
+            project_uuid (str): The UUID of the project to retrieve access list for.
+
+        Returns:
+            Dict[str, Any]: The raw response data from the API.
+        """
+        formatted_path = self._get_endpoint(project_uuid=project_uuid)
+        response_data = await self.lightdash_client.acall(self.request_type, formatted_path)
         return response_data
 
     def _parse_response(self, response_data: Dict[str, Any]) -> GetProjectAccessListV1Response:
         return GetProjectAccessListV1Response(**response_data)
+
+    def _get_endpoint(self, project_uuid: str) -> str:
+        """
+        Build the path for the API request.
+        """
+        return f"/api/v1/projects/{project_uuid}/access"
