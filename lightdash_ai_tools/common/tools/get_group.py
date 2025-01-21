@@ -12,15 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, Type
+
+from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.get_group_v1 import GetGroupV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.get_group_v1 import GetGroupV1Response
 
 
-class GetGroupV1Controller:
+class GetGroupToolInput(BaseModel):
+    """Input for the GetGroupTool tool."""
+    group_uuid: str = Field(description="The UUID of the group to retrieve.")
+    include_members: Optional[int] = Field(description="Number of members to include.")
+    # offset: Optional[int] = Field(description="Offset of members to include.")
+
+class GetGroup:
     """Controller for getting group details."""
+
+    name: str = "get_group"
+    description: str = "Get details of a specific group in the Lightdash organization"
+    input_schema: Type[BaseModel] = GetGroupToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """

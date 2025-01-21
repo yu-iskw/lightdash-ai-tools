@@ -42,7 +42,6 @@ def update_state(state: AgentState, user_input: str) -> AgentState:
     return state
 
 
-# trunk-ignore(sourcery/low-code-quality)
 def main():
     # Load environment variables
     load_dotenv()

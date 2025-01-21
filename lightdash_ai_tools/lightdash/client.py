@@ -75,7 +75,7 @@ class LightdashClient(BaseModel):
             return response.json()
         except requests.RequestException as e:
             error_message = textwrap.dedent(f"""\
-                API call failed: {e}
+              API call failed: {e}
 
               URL: {url}
               Parameters: {parameters}

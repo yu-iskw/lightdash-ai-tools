@@ -13,7 +13,9 @@
 # limitations under the License.
 
 
-from typing import List
+from typing import List, Type
+
+from pydantic import BaseModel
 
 from lightdash_ai_tools.lightdash.api.list_organization_projects_v1 import (
     ListOrganizationProjectsV1,
@@ -24,8 +26,17 @@ from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
 )
 
 
-class GetProjectsController:
+class GetProjectsToolInput(BaseModel):
+    """Input for the GetProjectsTool tool."""
+
+
+
+class GetProjects:
     """Controller for the GetProjects tool"""
+
+    name: str = "get_projects"
+    description: str = "Get all projects in the organization."
+    input_schema: Type[BaseModel] = GetProjectsToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""

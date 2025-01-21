@@ -20,24 +20,23 @@ from langchain_core.callbacks import (
     CallbackManagerForToolRun,
 )
 from langchain_core.tools import BaseTool, ToolException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from lightdash_ai_tools.common.tools.get_explore import GetExplore
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.controller.get_explore import GetExploreController
 from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Response
 
-
-class GetExploreToolInput(BaseModel):
-    """Input for the GetExploreTool tool."""
-    project_uuid: str = Field(description="The UUID of the project. This is not the project name.")
-    explore_id: str = Field(description="The ID of the explore to retrieve.")
+# class GetExploreToolInput(BaseModel):
+#     """Input for the GetExploreTool tool."""
+#     project_uuid: str = Field(description="The UUID of the project. This is not the project name.")
+#     explore_id: str = Field(description="The ID of the explore to retrieve.")
 
 class GetExploreTool(BaseTool):
     """Get a specific explore in a project"""
 
-    name: str = "get_explore"
-    description: str = "Get a specific explore (table) in a project."
-    args_schema: Type[BaseModel] = GetExploreToolInput
+    name: str = GetExplore.name
+    description: str = GetExplore.description
+    args_schema: Type[BaseModel] = GetExplore.input_schema
     return_direct: bool = False
     handle_tool_error: bool = True  # Enable error handling
     handle_validation_error: bool = True
@@ -51,8 +50,8 @@ class GetExploreTool(BaseTool):
       run_manager: Optional[CallbackManagerForToolRun] = None
       ) -> GetExploreV1Response:
         try:
-            controller = GetExploreController(lightdash_client=self.lightdash_client)
-            return controller(project_uuid=project_uuid, explore_id=explore_id)
+            tool = GetExplore(lightdash_client=self.lightdash_client)
+            return tool(project_uuid=project_uuid, explore_id=explore_id)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explore with project_uuid: {project_uuid} and explore_id: {explore_id}.

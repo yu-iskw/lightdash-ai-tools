@@ -20,27 +20,21 @@ from langchain_core.callbacks import (
     CallbackManagerForToolRun,
 )
 from langchain_core.tools import BaseTool, ToolException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from lightdash_ai_tools.lightdash.api.list_spaces_in_project_v1 import (
-    ListSpacesInProject,
-)
+from lightdash_ai_tools.common.tools.get_spaces_in_project import GetSpacesInProject
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
     ListSpacesInProjectV1Results,
 )
 
 
-class GetSpacesInProjectToolInput(BaseModel):
-    """Input for the GetSpacesInProjectTool tool."""
-    project_uuid: str = Field(description="The UUID of the project to get spaces for. That isn't the project name.")
-
 class GetSpacesInProjectTool(BaseTool):
     """Get spaces in a project"""
 
-    name: str = "get_spaces_in_project"
-    description: str = "Get spaces in a project"
-    args_schema: Type[BaseModel] = GetSpacesInProjectToolInput
+    name: str = GetSpacesInProject.name
+    description: str = GetSpacesInProject.description
+    args_schema: Type[BaseModel] = GetSpacesInProject.input_schema
     return_direct: bool = False
     handle_tool_error: bool = True
     handle_validation_error: bool = True
@@ -49,8 +43,8 @@ class GetSpacesInProjectTool(BaseTool):
 
     def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[ListSpacesInProjectV1Results]:
         try:
-            response = ListSpacesInProject(lightdash_client=self.lightdash_client).call(project_uuid)
-            return response.results
+            tool = GetSpacesInProject(lightdash_client=self.lightdash_client)
+            return tool(project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving spaces in project.

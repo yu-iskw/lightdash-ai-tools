@@ -19,25 +19,19 @@ from langchain_core.callbacks import (
     CallbackManagerForToolRun,
 )
 from langchain_core.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from lightdash_ai_tools.common.tools.get_group import GetGroup
 from lightdash_ai_tools.lightdash.client import LightdashClient
-from lightdash_ai_tools.lightdash.controller.get_group_v1 import GetGroupV1Controller
 from lightdash_ai_tools.lightdash.models.get_group_v1 import GetGroupV1Result
 
-
-class GetGroupToolInput(BaseModel):
-    """Input for the GetGroupTool tool."""
-    group_uuid: str = Field(description="The UUID of the group to retrieve.")
-    include_members: Optional[int] = Field(description="Number of members to include.")
-    # offset: Optional[int] = Field(description="Offset of members to include.")
 
 class GetGroupTool(BaseTool):
     """Tool for getting group details."""
 
-    name: str = "get_group"
-    description: str = "Get details of a specific group in the Lightdash organization"
-    args_schema: Type[BaseModel] = GetGroupToolInput
+    name: str = GetGroup.name
+    description: str = GetGroup.description
+    args_schema: Type[BaseModel] = GetGroup.input_schema
     return_direct: bool = False
     handle_tool_error: bool = True
     handle_validation_error: bool = True
@@ -59,8 +53,8 @@ class GetGroupTool(BaseTool):
         :param offset: Offset of members to include
         :return: Group details response
         """
-        controller = GetGroupV1Controller(lightdash_client=self.lightdash_client)
-        response = controller(
+        tool = GetGroup(lightdash_client=self.lightdash_client)
+        response = tool(
             group_uuid=group_uuid,
             include_members=include_members,
             # offset=offset

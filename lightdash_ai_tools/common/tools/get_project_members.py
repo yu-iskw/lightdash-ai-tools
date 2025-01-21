@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import List, Type
+
+from pydantic import BaseModel, Field
 
 from lightdash_ai_tools.lightdash.api.get_project_access_list_v1 import (
     GetProjectAccessListV1,
@@ -23,8 +25,18 @@ from lightdash_ai_tools.lightdash.models.get_project_access_list_v1 import (
 )
 
 
-class GetProjectMembersController:
+class GetProjectMembersToolInput(BaseModel):
+    """Input for the GetProjectMembersTool tool."""
+    project_uuid: str = Field(description="The UUID of the project to get members for. That isn't the project name.")
+
+
+
+class GetProjectMembers:
     """Controller for the GetProjectMembers tool"""
+
+    name: str = "get_project_members"
+    description: str = "Get the list of users with access to a specific project"
+    input_schema: Type[BaseModel] = GetProjectMembersToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
