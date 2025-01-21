@@ -108,23 +108,29 @@ class CompileQueryTool(BaseTool):
         filters: Optional[Filters] = None,
         sorts: Optional[List[SortField]] = None,
         limit: Optional[int] = 500,
-        run_manager: Optional[AsyncCallbackManagerForToolRun] = None
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None,
     ) -> Dict[str, Any]:
-        """Async version of the run method."""
+        """
+        Asynchronously compile a Lightdash query.
+
+        :return: Compiled query results
+        """
         try:
-            return self._run(
-                projectUuid,
-                exploreId,
-                exploreName,
-                dimensions,
-                metrics,
-                filters,
-                sorts,
-                limit
+            tool = CompileQueryV1(lightdash_client=self.lightdash_client)
+            response = await tool.acall(
+                projectUuid=projectUuid,
+                exploreId=exploreId,
+                exploreName=exploreName,
+                dimensions=dimensions,
+                metrics=metrics,
+                filters=filters,
+                sorts=sorts,
+                limit=limit
             )
+            return response
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error compiling Lightdash query with project_uuid: {projectUuid} and explore_id: {exploreId}.
+              Error compiling Lightdash query asynchronously with project_uuid: {projectUuid} and explore_id: {exploreId}.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e

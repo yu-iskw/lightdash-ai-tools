@@ -52,11 +52,54 @@ class ListGroupsInOrganizationV1Service:
 
             # Extract groups from the response
             current_groups = response.results.data
+            if not current_groups:
+                break
+
             all_groups.extend(current_groups)
 
             # Check if we've retrieved all pages
-            pagination = response.results.pagination
-            total_pages = pagination.totalPageCount
+            total_pages = response.results.pagination.totalPageCount
+
+            if current_page >= total_pages:
+                break
+
+            current_page += 1
+        return all_groups
+
+    async def get_all_groups_async(
+        self,
+        page_size: Optional[float] = 100,
+        include_members: Optional[float] = None,
+        search_query: Optional[str] = None,
+    ) -> List[Group]:
+        """
+        Asynchronously retrieve all groups across all pages
+
+        :param page_size: Number of results per page
+        :param include_members: Number of members to include
+        :param search_query: Search query to filter groups
+        :return: ListGroupsResponse or list of groups
+        """
+        all_groups: List[Group] = []
+        current_page = 1
+
+        while True:
+            response = await ListGroupsInOrganizationV1(lightdash_client=self.lightdash_client).acall(
+                page=current_page,
+                page_size=page_size,
+                include_members=include_members,
+                search_query=search_query
+            )
+
+            # Extract groups from the response
+            current_groups = response.results.data
+            if not current_groups:
+                break
+
+            all_groups.extend(current_groups)
+
+            # Check if we've retrieved all pages
+            total_pages = response.results.pagination.totalPageCount
 
             if current_page >= total_pages:
                 break

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import List
 
 from lightdash_ai_tools.lightdash.api.list_organization_members_v1 import (
     ListOrganizationMembersV1,
@@ -20,7 +20,7 @@ from lightdash_ai_tools.lightdash.api.list_organization_members_v1 import (
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
     ListOrganizationMembersV1Response,
-    ListOrganizationMembersV1Results,
+    OrganizationMemberModel,
 )
 
 
@@ -38,24 +38,74 @@ class ListOrganizationMembersV1Service:
 
     def get_all_members(
         self,
-        page_size: Optional[int] = None
-    ) -> List[ListOrganizationMembersV1Results]:
+        page_size: int = 100
+    ) -> List[OrganizationMemberModel]:
         """
         Get all members of the organization.
 
         Returns:
             List of organization members
         """
-        all_members = []
-        page = 1
+        all_members: List[OrganizationMemberModel] = []
+        current_page = 1
         api_call = ListOrganizationMembersV1(lightdash_client=self.lightdash_client)
+
         while True:
             response: ListOrganizationMembersV1Response = api_call.call(
-                page=page,
+                page=current_page,
                 page_size=page_size,
             )
-            if len(response.results.data) == 0:
-              break
-            all_members.extend(response.results.data)
-            page += 1
+
+            # Extract members from the response
+            current_members = response.results.data
+            if not current_members:
+                break
+
+            all_members.extend(current_members)
+
+            # Check if we've retrieved all pages
+            total_pages = response.results.pagination.totalPageCount
+
+            if current_page >= total_pages:
+                break
+
+            current_page += 1
+        return all_members
+
+    async def aget_all_members(
+        self,
+        page_size: int = 100
+    ) -> List[OrganizationMemberModel]:
+        """
+        Asynchronously get all members of the organization.
+
+        Returns:
+            List of organization members
+        """
+        all_members: List[OrganizationMemberModel] = []
+
+        all_members: List[OrganizationMemberModel] = []
+        current_page = 1
+        api_call = ListOrganizationMembersV1(lightdash_client=self.lightdash_client)
+
+        while True:
+            response: ListOrganizationMembersV1Response = await api_call.acall(
+                page=current_page,
+                page_size=page_size,
+            )
+
+            # Extract members from the response
+            current_members = response.results.data
+            if not current_members:
+                break
+
+            all_members.extend(current_members)
+
+            # Check if we've retrieved all pages
+            total_pages = response.results.pagination.totalPageCount
+
+            if current_page >= total_pages:
+                break
+
+            current_page += 1
         return all_members

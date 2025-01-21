@@ -14,7 +14,7 @@
 
 import textwrap
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import httpx
 from pydantic import BaseModel, Field, SecretStr
@@ -51,7 +51,7 @@ class LightdashClient(BaseModel):
         self,
         request_type: RequestType,
         path: str,
-        parameters: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, Union[str, int]]] = None,
         data: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """

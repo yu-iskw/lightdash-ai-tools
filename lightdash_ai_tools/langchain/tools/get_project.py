@@ -28,7 +28,7 @@ from lightdash_ai_tools.lightdash.models.get_project_v1 import GetProjectResults
 
 
 class GetProjectTool(BaseTool):
-    """Get project details"""
+    """Get a project by uuid"""
 
     name: str = GetProject.name
     description: str = GetProject.description
@@ -39,29 +39,45 @@ class GetProjectTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> GetProjectResults:
+    def _run(
+        self,
+        project_uuid: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> GetProjectResults:
+        """
+        Run method for getting a project by uuid.
+
+        Returns:
+            Project
+        """
         try:
             tool = GetProject(lightdash_client=self.lightdash_client)
-            return tool(project_uuid)
+            return tool.call(project_uuid=project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error retrieving project details with project_uuid: {project_uuid}.
+              Error retrieving project with project_uuid: {project_uuid}.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e
 
     async def _arun(
-      self,
-      project_uuid: str,
-      run_manager: Optional[AsyncCallbackManagerForToolRun] = None
+        self,
+        project_uuid: str,
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None
     ) -> GetProjectResults:
+        """
+        Asynchronously retrieve a project by uuid.
+
+        :param project_uuid: UUID of the project
+        :param run_manager: Optional async callback manager
+        :return: Project
+        """
         try:
-            if run_manager is not None:
-                return self._run(project_uuid, run_manager=run_manager.get_sync())
-            return self._run(project_uuid)
+            tool = GetProject(lightdash_client=self.lightdash_client)
+            return await tool.acall(project_uuid=project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error retrieving project details asynchronously with project_uuid: {project_uuid}.
+              Error retrieving project asynchronously with project_uuid: {project_uuid}.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e

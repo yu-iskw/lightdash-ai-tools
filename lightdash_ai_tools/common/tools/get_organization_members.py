@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Type
+from typing import List, Optional, Type
 
 from pydantic import BaseModel
 
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_organization_members_v1 import (
-    ListOrganizationMembersV1Results,
+    OrganizationMemberModel,
 )
 from lightdash_ai_tools.lightdash.services.list_organization_members_v1 import (
     ListOrganizationMembersV1Service,
@@ -27,7 +27,7 @@ from lightdash_ai_tools.lightdash.services.list_organization_members_v1 import (
 
 class GetOrganizationMembersToolInput(BaseModel):
     """Input for the GetOrganizationMembersTool tool."""
-
+    page_size: Optional[int] = 10
 
 
 class GetOrganizationMembers:
@@ -40,7 +40,28 @@ class GetOrganizationMembers:
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
         self.lightdash_client = lightdash_client
+        self.service = ListOrganizationMembersV1Service(lightdash_client=lightdash_client)
 
-    def __call__(self) -> List[ListOrganizationMembersV1Results]:
-        """Call the controller"""
-        return ListOrganizationMembersV1Service(lightdash_client=self.lightdash_client).get_all_members()
+    def call(
+        self,
+        page_size: int = 100
+    ) -> List[OrganizationMemberModel]:
+        """
+        Call the controller to get all organization members
+
+        :param page_size: Number of results per page
+        :return: List of organization members
+        """
+        return self.service.get_all_members(page_size=page_size)
+
+    async def acall(
+        self,
+        page_size: int = 100
+    ) -> List[OrganizationMemberModel]:
+        """
+        Async call the controller to get all organization members
+
+        :param page_size: Number of results per page
+        :return: List of organization members
+        """
+        return await self.service.aget_all_members(page_size=page_size)

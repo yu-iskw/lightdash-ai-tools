@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Type
+from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from lightdash_ai_tools.lightdash.api.list_spaces_in_project_v1 import (
-    ListSpacesInProject,
+    ListSpacesInProjectV1,
 )
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
@@ -25,24 +25,22 @@ from lightdash_ai_tools.lightdash.models.list_spaces_in_project_v1 import (
 )
 
 
-class GetSpacesInProjectToolInput(BaseModel):
-    """Input for the GetSpacesInProjectTool tool."""
-    project_uuid: str = Field(description="The UUID of the project to get spaces for. That isn't the project name.")
+class GetSpacesInProjectInput(BaseModel):
+    project_uuid: str
 
 
 class GetSpacesInProject:
-    """Controller for the GetSpacesInProject tool"""
-
     name: str = "get_spaces_in_project"
     description: str = "Get spaces in a project"
-    input_schema: Type[BaseModel] = GetSpacesInProjectToolInput
+    input_schema = GetSpacesInProjectInput
 
     def __init__(self, lightdash_client: LightdashClient):
-        """Initialize the controller"""
         self.lightdash_client = lightdash_client
 
-    def __call__(self, project_uuid: str) -> List[ListSpacesInProjectV1Results]:
-        """Call the controller"""
-        response = ListSpacesInProject(lightdash_client=self.lightdash_client).call(project_uuid)
-        results = response.results
-        return results
+    def call(self, project_uuid: str) -> List[ListSpacesInProjectV1Results]:
+        service = ListSpacesInProjectV1 (client=self.lightdash_client)
+        return service.call(project_uuid=project_uuid)
+
+    async def acall(self, project_uuid: str) -> List[ListSpacesInProjectV1Results]:
+        service = ListSpacesInProjectV1(client=self.lightdash_client)
+        return await service.acall(project_uuid=project_uuid)

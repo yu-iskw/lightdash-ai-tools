@@ -51,7 +51,7 @@ class GetGroupV1(BaseLightdashApiCaller[GetGroupV1Response]):
 
     async def _arequest(self, group_uuid: str, include_members: Optional[int] = None, offset: Optional[int] = None) -> Dict[str, Any]:
         """
-        Retrieve a specific group asynchronously.
+        Asynchronously retrieve a specific group.
 
         Args:
             group_uuid (str): The UUID of the group to retrieve.

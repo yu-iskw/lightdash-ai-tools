@@ -30,19 +30,23 @@ class GetProjectMembersToolInput(BaseModel):
     project_uuid: str = Field(description="The UUID of the project to get members for. That isn't the project name.")
 
 
-
 class GetProjectMembers:
     """Controller for the GetProjectMembers tool"""
 
     name: str = "get_project_members"
-    description: str = "Get the list of users with access to a specific project"
+    description: str = "Get members of a project"
     input_schema: Type[BaseModel] = GetProjectMembersToolInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
         self.lightdash_client = lightdash_client
 
-    def __call__(self, project_uuid: str) -> List[GetProjectAccessListV1Results]:
+    def call(self, project_uuid: str) -> List[GetProjectAccessListV1Results]:
         """Call the controller"""
-        response = GetProjectAccessListV1(lightdash_client=self.lightdash_client).call(project_uuid)
-        return response.results
+        service = GetProjectAccessListV1(lightdash_client=self.lightdash_client)
+        return service.call(project_uuid=project_uuid)
+
+    async def acall(self, project_uuid: str) -> List[GetProjectAccessListV1Results]:
+        """Async call the controller"""
+        service = GetProjectAccessListV1(lightdash_client=self.lightdash_client)
+        return await service.acall(project_uuid=project_uuid)

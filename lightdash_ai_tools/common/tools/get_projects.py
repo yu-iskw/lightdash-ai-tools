@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import List, Type
+from typing import List
 
 from pydantic import BaseModel
 
@@ -26,23 +26,27 @@ from lightdash_ai_tools.lightdash.models.list_organization_projects_v1 import (
 )
 
 
-class GetProjectsToolInput(BaseModel):
-    """Input for the GetProjectsTool tool."""
-
+class GetProjectsInput(BaseModel):
+    pass
 
 
 class GetProjects:
     """Controller for the GetProjects tool"""
 
     name: str = "get_projects"
-    description: str = "Get all projects in the organization."
-    input_schema: Type[BaseModel] = GetProjectsToolInput
+    description: str = "Get all projects in the organization"
+    input_schema = GetProjectsInput
 
     def __init__(self, lightdash_client: LightdashClient):
         """Initialize the controller"""
         self.lightdash_client = lightdash_client
 
-    def __call__(self) -> List[ListOrganizationProjectsV1Results]:
+    def call(self) -> List[ListOrganizationProjectsV1Results]:
         """Call the controller"""
-        response = ListOrganizationProjectsV1(lightdash_client=self.lightdash_client).call()
-        return response.results
+        service = ListOrganizationProjectsV1(lightdash_client=self.lightdash_client)
+        return service.call().results
+
+    async def acall(self) -> List[ListOrganizationProjectsV1Results]:
+        """Async call the controller"""
+        service = ListOrganizationProjectsV1(lightdash_client=self.lightdash_client)
+        return (await service.acall()).results

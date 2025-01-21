@@ -42,7 +42,7 @@ class GetGroup:
         """
         self.lightdash_client = lightdash_client
 
-    def __call__(
+    def call(
         self,
         group_uuid: str,
         include_members: Optional[int] = None,
@@ -58,3 +58,20 @@ class GetGroup:
         """
         api = GetGroupV1(lightdash_client=self.lightdash_client)
         return api.call(group_uuid=group_uuid, include_members=include_members, offset=offset)
+
+    async def acall(
+        self,
+        group_uuid: str,
+        include_members: Optional[int] = None,
+        offset: Optional[int] = None
+    ) -> GetGroupV1Response:
+        """
+        Asynchronously get details of a specific group.
+
+        :param group_uuid: Unique identifier of the group
+        :param include_members: Number of members to include
+        :param offset: Offset of members to include
+        :return: Group details response
+        """
+        api = GetGroupV1(lightdash_client=self.lightdash_client)
+        return await api.acall(group_uuid=group_uuid, include_members=include_members, offset=offset)

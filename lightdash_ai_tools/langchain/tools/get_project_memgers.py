@@ -24,10 +24,13 @@ from pydantic import BaseModel
 
 from lightdash_ai_tools.common.tools.get_project_members import GetProjectMembers
 from lightdash_ai_tools.lightdash.client import LightdashClient
+from lightdash_ai_tools.lightdash.models.get_project_access_list_v1 import (
+    GetProjectAccessListV1Results,
+)
 
 
 class GetProjectMembersTool(BaseTool):
-    """Get project members"""
+    """Get members of a project"""
 
     name: str = GetProjectMembers.name
     description: str = GetProjectMembers.description
@@ -42,19 +45,19 @@ class GetProjectMembersTool(BaseTool):
         self,
         project_uuid: str,
         run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> List[str]:
+    ) -> List[GetProjectAccessListV1Results]:
         """
-        Run method for getting project access list.
+        Run method for getting members of a project.
 
         Returns:
-            List of project access members as JSON strings
+            List of members in the project
         """
         try:
             tool = GetProjectMembers(lightdash_client=self.lightdash_client)
-            return tool(project_uuid)
+            return tool.call(project_uuid=project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error retrieving project access list.
+              Error retrieving project members with project_uuid: {project_uuid}.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e
@@ -63,20 +66,20 @@ class GetProjectMembersTool(BaseTool):
         self,
         project_uuid: str,
         run_manager: Optional[AsyncCallbackManagerForToolRun] = None
-    ) -> List[str]:
+    ) -> List[GetProjectAccessListV1Results]:
         """
-        Async run method for getting project access list.
+        Asynchronously retrieve members of a project.
 
-        Returns:
-            List of project access members as JSON strings
+        :param project_uuid: UUID of the project
+        :param run_manager: Optional async callback manager
+        :return: List of members in the project
         """
         try:
-            if run_manager is not None:
-                return self._run(project_uuid, run_manager=run_manager.get_sync())
-            return self._run(project_uuid)
+            tool = GetProjectMembers(lightdash_client=self.lightdash_client)
+            return await tool.acall(project_uuid=project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
-              Error retrieving project access list asynchronously with project_uuid: {project_uuid}.
+              Error retrieving project members asynchronously with project_uuid: {project_uuid}.
               Exception: {type(e).__name__}: {e}
             """).strip()
             raise ToolException(error_message) from e

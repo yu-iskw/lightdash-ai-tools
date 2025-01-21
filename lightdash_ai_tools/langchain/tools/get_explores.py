@@ -39,10 +39,20 @@ class GetExploresTool(BaseTool):
 
     lightdash_client: LightdashClient
 
-    def _run(self, project_uuid: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> List[GetExploresV1Results]:
+    def _run(
+        self,
+        project_uuid: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> List[GetExploresV1Results]:
+        """
+        Run method for getting explores.
+
+        Returns:
+            List of explores as JSON strings
+        """
         try:
             tool = GetExplores(lightdash_client=self.lightdash_client)
-            return tool(project_uuid)
+            return tool.call(project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explores with project_uuid: {project_uuid}.
@@ -51,14 +61,20 @@ class GetExploresTool(BaseTool):
             raise ToolException(error_message) from e
 
     async def _arun(
-      self,
-      project_uuid: str,
-      run_manager: Optional[AsyncCallbackManagerForToolRun] = None
+        self,
+        project_uuid: str,
+        run_manager: Optional[AsyncCallbackManagerForToolRun] = None
     ) -> List[GetExploresV1Results]:
+        """
+        Asynchronously retrieve explores in a project.
+
+        :param project_uuid: UUID of the project
+        :param run_manager: Optional async callback manager
+        :return: List of explores
+        """
         try:
-            if run_manager is not None:
-                return self._run(project_uuid, run_manager=run_manager.get_sync())
-            return self._run(project_uuid)
+            tool = GetExplores(lightdash_client=self.lightdash_client)
+            return await tool.acall(project_uuid)
         except Exception as e:
             error_message = textwrap.dedent(f"""\
               Error retrieving explores asynchronously with project_uuid: {project_uuid}.

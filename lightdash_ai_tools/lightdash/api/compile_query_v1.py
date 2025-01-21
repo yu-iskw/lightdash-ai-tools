@@ -48,7 +48,7 @@ class CompileQueryV1(BaseLightdashApiCaller[CompileQueryResponseV1]):
 
     async def _arequest(self, project_uuid: str, explore_id: str, body: CompileQueryRequestV1) -> Dict[str, Any]:
         """
-        Compile a query for a specific explore in a project asynchronously.
+        Asynchronously compile a query for a specific explore in a project.
 
         Args:
             project_uuid (str): The UUID of the project

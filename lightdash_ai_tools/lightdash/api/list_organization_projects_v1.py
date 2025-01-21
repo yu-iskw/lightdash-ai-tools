@@ -48,14 +48,10 @@ class ListOrganizationProjectsV1(BaseLightdashApiCaller[ListOrganizationProjects
         if page is not None:
             params["page"] = page
         if page_size is not None:
-            params["pageSize"] = page_size
+            params["page_size"] = page_size
         if search_query is not None:
-            params["searchQuery"] = search_query
-
-        response_data = self.lightdash_client.call(
-            request_type=self.request_type, path=formatted_path, params=params
-        )
-        return response_data
+            params["search_query"] = search_query
+        return self.lightdash_client.call(request_type=self.request_type, path=formatted_path, parameters=params)
 
     async def _arequest(
         self,
@@ -64,7 +60,7 @@ class ListOrganizationProjectsV1(BaseLightdashApiCaller[ListOrganizationProjects
         search_query: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Retrieve all projects in the current organization.
+        Asynchronously retrieve all projects in the current organization.
 
         Args:
             page: Page number for pagination
@@ -79,14 +75,10 @@ class ListOrganizationProjectsV1(BaseLightdashApiCaller[ListOrganizationProjects
         if page is not None:
             params["page"] = page
         if page_size is not None:
-            params["pageSize"] = page_size
+            params["page_size"] = page_size
         if search_query is not None:
-            params["searchQuery"] = search_query
-
-        response_data = await self.lightdash_client.acall(
-            request_type=self.request_type, path=formatted_path, params=params
-        )
-        return response_data
+            params["search_query"] = search_query
+        return await self.lightdash_client.acall(request_type=self.request_type, path=formatted_path, parameters=params)
 
     def _parse_response(self, response_data: Dict[str, Any]) -> ListOrganizationProjectsV1Response:
         return ListOrganizationProjectsV1Response(**response_data)

@@ -61,7 +61,7 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
             params["includeGroups"] = include_groups
 
         response_data = self.lightdash_client.call(
-            request_type=self.request_type, path=formatted_path, params=params
+            request_type=self.request_type, path=formatted_path, parameters=params
         )
         return response_data
 
@@ -74,7 +74,7 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
         include_groups: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
-        List organization members.
+        Async version to list organization members.
 
         Args:
             page: Page number for pagination
@@ -100,7 +100,7 @@ class ListOrganizationMembersV1(BaseLightdashApiCaller[ListOrganizationMembersV1
             params["includeGroups"] = include_groups
 
         response_data = await self.lightdash_client.acall(
-            request_type=self.request_type, path=formatted_path, params=params
+            request_type=self.request_type, path=formatted_path, parameters=params
         )
         return response_data
 
