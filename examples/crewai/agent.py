@@ -15,7 +15,6 @@
 import os
 
 from crewai import Agent, Crew, Task
-from crewai_tools import SerperDevTool
 
 from lightdash_ai_tools.crewai.tools import get_all_readable_crewai_tools
 from lightdash_ai_tools.lightdash.client import LightdashClient
