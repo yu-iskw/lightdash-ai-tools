@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from crewai import Agent, Crew, Task
 from crewai_tools import SerperDevTool
+
+from lightdash_ai_tools.crewai.tools import get_all_readable_crewai_tools
+from lightdash_ai_tools.lightdash.client import LightdashClient
 
 
 class LightdashInvestigationCrew():
@@ -41,7 +46,7 @@ class LightdashInvestigationCrew():
             goal="Retrieve information from Lightdash using the provided tools.",
             backstory="You are an expert in using Lightdash tools.",
             tools=tools,
-            allow_delegation=True,
+            allow_delegation=False,
         )
 
     def tool_fixer_agent(self) -> Agent:
@@ -52,10 +57,12 @@ class LightdashInvestigationCrew():
             allow_delegation=False,
         )
 
-    def initial_task(self) -> Task:
+    def initial_task(self, tools) -> Task:
         return Task(
             description="Initial user query will be processed here.",
-            agent=self.user_proxy_agent()
+            agent=self.user_proxy_agent(),
+            tools=tools,
+            expected_output="A list of projects in the organization.",
         )
 
     def crew(self, tools) -> Crew:
@@ -65,15 +72,22 @@ class LightdashInvestigationCrew():
                 self.lightdash_investigator_agent(tools),
                 self.tool_fixer_agent(),
             ],
-            tasks=[self.initial_task()],
+            tasks=[self.initial_task(tools)],
             verbose=True
         )
 
 
 def main():
-    tools = [
-        SerperDevTool(),
-    ]
+    lightdash_url = os.getenv("LIGHTDASH_URL")
+    lightdash_api_key = os.getenv("LIGHTDASH_API_KEY")
+    if not lightdash_url or not lightdash_api_key:
+        raise ValueError("Environment variables LIGHTDASH_URL and LIGHTDASH_API_KEY must be set.")
+    lightdash_client = LightdashClient(
+        base_url=lightdash_url,
+        token=lightdash_api_key,
+    )
+    tools = get_all_readable_crewai_tools(lightdash_client=lightdash_client)
+
     crew = LightdashInvestigationCrew().crew(tools)
     crew.kickoff()
 
