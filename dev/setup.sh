@@ -65,5 +65,5 @@ fi
 if [[ ${deps} == "production" ]]; then
 	uv pip install "${UV_PIP_OPTIONS[@]}" -e "."
 else
-	uv pip install "${UV_PIP_OPTIONS[@]}" -e ".[dev,langchain]"
+	uv pip install "${UV_PIP_OPTIONS[@]}" -e ".[all,dev]"
 fi
