@@ -175,3 +175,5 @@ cython_debug/
 *.temp
 tmp*
 temp*
+
+.ruff_cache/

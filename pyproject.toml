@@ -5,9 +5,12 @@ build-backend = "hatchling.build"
 [tool.hatch.build]
 exclude = ["tests", "dev", ".trunk", ".github", ".venv", "dist"]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/lightdash_ai_tools"]
+
 [project]
 name = "lightdash-ai-tools"
-version = "0.1.0"
+version = "0.2.0"
 authors = [{ name = "yu-iskw" }]
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -32,7 +35,11 @@ description = "AI tools for Lightdash"
 dependencies = ["pydantic>=2.9", "requests>=2.32"]
 
 [project.optional-dependencies]
+all = ["lightdash-ai-tools[langchain]", "lightdash-ai-tools[crewai]"]
+
 langchain = ["langchain-core>=0.3,<1.0"]
+
+crewai = ["crewai[tools]>=0.98.0,<1.0"]
 
 dev = [
   "build>=1.2.2.post1",
