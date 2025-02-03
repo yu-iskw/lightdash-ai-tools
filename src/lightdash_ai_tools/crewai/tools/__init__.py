@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Copyright 2025 yu-iskw
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -Eo pipefail
 
-# python -m build
-uv build
+from typing import List
+
+from crewai.tools import BaseTool
+
+from lightdash_ai_tools.crewai.tools.get_projects import GetProjectsTool
+from lightdash_ai_tools.lightdash.client import LightdashClient
+
+
+def get_all_readable_crewai_tools(lightdash_client: LightdashClient) -> List[BaseTool]:
+    return [
+        GetProjectsTool(lightdash_client=lightdash_client),
+    ]
+
+__all__ = [
+    "GetProjectsTool",
+]

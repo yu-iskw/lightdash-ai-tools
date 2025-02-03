@@ -44,9 +44,11 @@ class GetProjectMembers:
     def call(self, project_uuid: str) -> List[GetProjectAccessListV1Results]:
         """Call the controller"""
         service = GetProjectAccessListV1(lightdash_client=self.lightdash_client)
-        return service.call(project_uuid=project_uuid)
+        response = service.call(project_uuid=project_uuid)
+        return response.results
 
     async def acall(self, project_uuid: str) -> List[GetProjectAccessListV1Results]:
         """Async call the controller"""
         service = GetProjectAccessListV1(lightdash_client=self.lightdash_client)
-        return await service.acall(project_uuid=project_uuid)
+        response = await service.acall(project_uuid=project_uuid)
+        return response.results
