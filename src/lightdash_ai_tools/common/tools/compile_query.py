@@ -16,13 +16,13 @@ from typing import List, Optional, Type
 
 from pydantic import BaseModel, Field
 
-from lightdash_ai_tools.lightdash.api.get_explore_v1 import GetExploreV1
+from lightdash_ai_tools.lightdash.api.compile_query_v1 import CompileQueryV1
 from lightdash_ai_tools.lightdash.client import LightdashClient
 from lightdash_ai_tools.lightdash.models.compile_query_v1 import (
+    CompileQueryRequestV1,
     Filters,
     SortField,
 )
-from lightdash_ai_tools.lightdash.models.get_explore_v1 import GetExploreV1Results
 
 
 class CompileQueryInput(BaseModel):
@@ -37,8 +37,6 @@ class CompileQueryInput(BaseModel):
     limit: Optional[int] = Field(default=500, description="Limit of results")
 
 
-from lightdash_ai_tools.lightdash.api.compile_query_v1 import CompileQueryV1
-from lightdash_ai_tools.lightdash.models.compile_query_v1 import CompileQueryRequestV1
 
 
 class CompileQuery:
